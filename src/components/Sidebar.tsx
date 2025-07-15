@@ -6,11 +6,16 @@ import {
   FolderOpen,
   BarChart3,
   Settings,
-  Plus
+  Plus,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  X
 } from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Input } from './ui/input';
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
 
@@ -63,6 +68,24 @@ export default function Sidebar() {
     });
   };
 
+  const toggleSidebar = () => {
+    dispatch({
+      type: 'SET_UI',
+      payload: { key: 'sidebarOpen', value: !state.ui.sidebarOpen }
+    });
+  };
+
+  const handleSearch = (value: string) => {
+    dispatch({
+      type: 'SET_FILTER',
+      payload: { key: 'search', value }
+    });
+  };
+
+  const clearSearch = () => {
+    handleSearch('');
+  };
+
   const openProjectModal = () => {
     setEditingProject(null);
     setProjectModalOpen(true);
@@ -79,43 +102,115 @@ export default function Sidebar() {
   };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 z-40 bg-surface border-r border-border transition-all duration-300 ${
-        state.ui.sidebarOpen
-          ? 'w-[var(--sidebar-width)] translate-x-0'
-          : 'w-[var(--sidebar-width)] lg:w-16 -translate-x-full lg:translate-x-0'
-      }`}
-      style={{
-        top: 'var(--header-height)',
-        height: 'calc(100vh - var(--header-height))'
-      }}
-    >
+    <>
+      {/* Mobile Overlay */}
+      {state.ui.sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Seamless Toggle Button - Transitions from inside sidebar to outside */}
+      <div
+        className="fixed z-50 hidden lg:block"
+        style={{
+          top: '16px',
+          left: state.ui.sidebarOpen ? 'calc(var(--sidebar-width) - 48px)' : '16px',
+          transition: 'all 300ms ease-in-out',
+        }}
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className="p-1.5 bg-surface border border-border shadow-md hover:bg-muted w-8 h-8 py-3"
+          style={{
+            background: state.ui.sidebarOpen ? 'transparent' : 'hsl(var(--surface))',
+            border: state.ui.sidebarOpen ? 'none' : '1px solid hsl(var(--border))',
+            boxShadow: state.ui.sidebarOpen ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {state.ui.sidebarOpen ? (
+            <PanelLeftClose className="w-4 h-4" />
+          ) : (
+            <PanelLeftOpen className="w-4 h-4" />
+          )}
+        </Button>
+      </div>
+
+      <aside
+        className="fixed left-0 top-0 z-40 bg-surface border-r border-border h-screen transition-transform duration-300 ease-in-out"
+        style={{
+          width: 'var(--sidebar-width)',
+          transform: state.ui.sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
+        }}
+      >
       <div className="flex flex-col h-full overflow-hidden">
+        {/* Header Section - Logo */}
+        <div className="p-3 border-b border-border">
+          <div className="flex items-center">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xs">T</span>
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-foreground">TaskFlow</h1>
+                <p className="text-xs text-muted-foreground">Task Management</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Section */}
+        <div className="p-3 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-8"
+              value={state.filters.search}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+            {state.filters.search && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
+                onClick={clearSearch}
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Main Navigation - Scrollable */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <nav className="p-4 space-y-2">
+          <nav className="p-3 space-y-1">
           {navigationItems.map((item) => {
             const IconComponent = item.icon;
             const count = getTaskCount(item.id);
             const isActive = state.ui.activeView === item.id;
-            
+
             return (
               <Button
                 key={item.id}
                 variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-3 h-auto ${
-                  !state.ui.sidebarOpen ? 'px-3 justify-center lg:justify-start' : ''
-                } ${isActive ? 'bg-primary/10 text-primary border border-primary/20' : ''}`}
+                className={`w-full justify-start p-2.5 h-auto ${
+                  isActive ? 'bg-primary/10 text-primary border border-primary/20' : ''
+                }`}
                 onClick={() => setActiveView(item.id)}
               >
-                <IconComponent className={`w-5 h-5 ${state.ui.sidebarOpen ? 'mr-3' : 'lg:mr-3'}`} />
-                <span className={`flex-1 text-left ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}>
+                <IconComponent className="w-4 h-4 mr-2.5" />
+                <span className="flex-1 text-left text-sm">
                   {item.label}
                 </span>
                 {count > 0 && (
                   <Badge
                     variant="secondary"
-                    className={`ml-auto text-xs bg-muted-foreground/10 ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}
+                    className="ml-auto text-xs bg-muted-foreground/10"
                   >
                     {count}
                   </Badge>
@@ -125,21 +220,20 @@ export default function Sidebar() {
           })}
           
             {/* Projects Section */}
-            {state.ui.sidebarOpen && (
-              <div className="pt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">Projects</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-6 w-6 hover:bg-muted"
-                    onClick={openProjectModal}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
+            <div className="pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Projects</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-5 w-5 hover:bg-muted"
+                  onClick={openProjectModal}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+              </div>
 
-                <div className="space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
+                <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar">
                   {state.projects.map((project) => {
                     const projectTaskCount = state.tasks.filter(
                       task => task.projectId === project.id && !task.completed
@@ -149,7 +243,7 @@ export default function Sidebar() {
                       <div key={project.id} className="group relative">
                         <Button
                           variant="ghost"
-                          className="w-full justify-start p-3 h-auto pr-8"
+                          className="w-full justify-start p-2 h-auto pr-7 text-sm"
                           onClick={() => {
                             dispatch({
                               type: 'SET_FILTER',
@@ -159,7 +253,7 @@ export default function Sidebar() {
                           }}
                         >
                           <div
-                            className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
+                            className="w-2.5 h-2.5 rounded-full mr-2.5 flex-shrink-0"
                             style={{ backgroundColor: project.color }}
                           />
                           <span className="flex-1 text-left truncate">{project.name}</span>
@@ -183,12 +277,11 @@ export default function Sidebar() {
                   })}
                 </div>
               </div>
-            )}
           </nav>
         </div>
 
         {/* Bottom Navigation - Fixed */}
-        <div className="p-4 space-y-2 border-t border-border bg-surface">
+        <div className="p-3 space-y-1 border-t border-border bg-surface">
           {bottomItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = state.ui.activeView === item.id;
@@ -197,13 +290,13 @@ export default function Sidebar() {
               <Button
                 key={item.id}
                 variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-3 h-auto ${
-                  !state.ui.sidebarOpen ? 'px-3 justify-center lg:justify-start' : ''
-                } ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                className={`w-full justify-start p-2.5 h-auto ${
+                  isActive ? 'bg-primary/10 text-primary' : ''
+                }`}
                 onClick={() => setActiveView(item.id)}
               >
-                <IconComponent className={`w-5 h-5 ${state.ui.sidebarOpen ? 'mr-3' : 'lg:mr-3'}`} />
-                <span className={`flex-1 text-left ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}>
+                <IconComponent className="w-4 h-4 mr-2.5" />
+                <span className="flex-1 text-left text-sm">
                   {item.label}
                 </span>
               </Button>
@@ -219,5 +312,6 @@ export default function Sidebar() {
         project={editingProject}
       />
     </aside>
+    </>
   );
 }

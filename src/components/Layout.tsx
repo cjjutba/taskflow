@@ -16,20 +16,29 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background font-inter">
-      <Header />
+    <div className="min-h-screen bg-background font-inter flex">
+      {/* Sidebar - Full Height */}
+      <Sidebar />
 
-      <div className="flex">
-        <Sidebar />
+      {/* Mobile Overlay */}
+      {state.ui.sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'sidebarOpen', value: false } })}
+        />
+      )}
 
-        <main
-          className={`flex-1 transition-all duration-300 ${
-            state.ui.sidebarOpen
-              ? 'lg:ml-[var(--sidebar-width)]'
-              : 'ml-0 lg:ml-16'
-          }`}
-          style={{ paddingTop: 'var(--header-height)' }}
-        >
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
+        state.ui.sidebarOpen
+          ? 'lg:ml-[var(--sidebar-width)]'
+          : 'ml-0'
+      }`}>
+        {/* Header */}
+        <Header />
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
           <div className="h-full">
             {children}
           </div>
