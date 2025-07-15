@@ -23,10 +23,10 @@ export default function Header() {
 
   return (
     <header
-      className="bg-background border-b border-border flex-shrink-0"
+      className="bg-background border-b border-border flex-shrink-0 w-full"
       style={{ height: 'var(--header-height)' }}
     >
-      <div className="flex items-center justify-end h-full px-4 gap-2">
+      <div className="flex items-center justify-end h-full px-4 gap-2 w-full min-w-0">
         {/* Mobile Menu Toggle - Only show on mobile when sidebar is closed */}
         {!state.ui.sidebarOpen && (
           <Button

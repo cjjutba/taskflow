@@ -8,6 +8,8 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   dueDate: Date | null;
   projectId: string | null;
+  sectionId: string | null;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,9 +21,20 @@ export interface Project {
   taskCount: number;
 }
 
+export interface Section {
+  id: string;
+  name: string;
+  color?: string;
+  order: number;
+  viewId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface TaskState {
   tasks: Task[];
   projects: Project[];
+  sections: Section[];
   filters: {
     search: string;
     project: string | null;
@@ -38,8 +51,10 @@ interface TaskState {
   ui: {
     sidebarOpen: boolean;
     activeView: string;
+    viewMode: 'list' | 'board';
     taskModalOpen: boolean;
     editingTask: Task | null;
+    selectedSectionId: string | null;
   };
 }
 
@@ -49,19 +64,28 @@ type TaskAction =
   | { type: 'UPDATE_TASK'; payload: Task }
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'TOGGLE_TASK'; payload: string }
+  | { type: 'MOVE_TASK_TO_SECTION'; payload: { taskId: string; sectionId: string | null; newOrder: number } }
+  | { type: 'REORDER_TASKS'; payload: { taskId: string; newOrder: number; sectionId: string | null } }
   | { type: 'SET_PROJECTS'; payload: Project[] }
   | { type: 'ADD_PROJECT'; payload: Project }
   | { type: 'UPDATE_PROJECT'; payload: Project }
   | { type: 'DELETE_PROJECT'; payload: string }
+  | { type: 'SET_SECTIONS'; payload: Section[] }
+  | { type: 'ADD_SECTION'; payload: Section }
+  | { type: 'UPDATE_SECTION'; payload: Section }
+  | { type: 'DELETE_SECTION'; payload: string }
+  | { type: 'REORDER_SECTIONS'; payload: { sectionId: string; newOrder: number } }
   | { type: 'SET_FILTER'; payload: { key: keyof TaskState['filters']; value: any } }
   | { type: 'SET_UI'; payload: { key: keyof TaskState['ui']; value: any } }
+  | { type: 'SET_VIEW_MODE'; payload: 'list' | 'board' }
   | { type: 'CLEAR_FILTERS' }
-  | { type: 'OPEN_TASK_MODAL'; payload?: Task | null }
+  | { type: 'OPEN_TASK_MODAL'; payload?: { task?: Task | null; sectionId?: string | null } }
   | { type: 'CLOSE_TASK_MODAL' };
 
 const initialState: TaskState = {
   tasks: [],
   projects: [],
+  sections: [],
   filters: {
     search: '',
     project: null,
@@ -74,8 +98,10 @@ const initialState: TaskState = {
   ui: {
     sidebarOpen: true,
     activeView: 'today',
+    viewMode: 'list',
     taskModalOpen: false,
     editingTask: null,
+    selectedSectionId: null,
   },
 };
 
@@ -95,6 +121,8 @@ const sampleTasks: Task[] = [
     priority: 'high',
     dueDate: new Date(Date.now() + 86400000), // Tomorrow
     projectId: '2',
+    sectionId: null,
+    order: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -106,6 +134,8 @@ const sampleTasks: Task[] = [
     priority: 'medium',
     dueDate: new Date(Date.now() + 259200000), // 3 days
     projectId: '2',
+    sectionId: null,
+    order: 1,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -117,6 +147,8 @@ const sampleTasks: Task[] = [
     priority: 'low',
     dueDate: null,
     projectId: '1',
+    sectionId: null,
+    order: 2,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -128,6 +160,8 @@ const sampleTasks: Task[] = [
     priority: 'medium',
     dueDate: new Date(),
     projectId: '1',
+    sectionId: null,
+    order: 3,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -139,6 +173,8 @@ const sampleTasks: Task[] = [
     priority: 'medium',
     dueDate: new Date(Date.now() + 604800000), // 1 week
     projectId: '3',
+    sectionId: null,
+    order: 4,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -202,12 +238,73 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
         filters: { ...state.filters, [action.payload.key]: action.payload.value },
       };
     
+    case 'MOVE_TASK_TO_SECTION':
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === action.payload.taskId
+            ? { ...task, sectionId: action.payload.sectionId, order: action.payload.newOrder, updatedAt: new Date() }
+            : task
+        ),
+      };
+
+    case 'REORDER_TASKS':
+      return {
+        ...state,
+        tasks: state.tasks.map(task =>
+          task.id === action.payload.taskId
+            ? { ...task, order: action.payload.newOrder, sectionId: action.payload.sectionId, updatedAt: new Date() }
+            : task
+        ),
+      };
+
+    case 'SET_SECTIONS':
+      return { ...state, sections: action.payload };
+
+    case 'ADD_SECTION':
+      return { ...state, sections: [...state.sections, action.payload] };
+
+    case 'UPDATE_SECTION':
+      return {
+        ...state,
+        sections: state.sections.map(section =>
+          section.id === action.payload.id ? action.payload : section
+        ),
+      };
+
+    case 'DELETE_SECTION':
+      return {
+        ...state,
+        sections: state.sections.filter(section => section.id !== action.payload),
+        tasks: state.tasks.map(task =>
+          task.sectionId === action.payload
+            ? { ...task, sectionId: null, updatedAt: new Date() }
+            : task
+        ),
+      };
+
+    case 'REORDER_SECTIONS':
+      return {
+        ...state,
+        sections: state.sections.map(section =>
+          section.id === action.payload.sectionId
+            ? { ...section, order: action.payload.newOrder, updatedAt: new Date() }
+            : section
+        ),
+      };
+
     case 'SET_UI':
       return {
         ...state,
         ui: { ...state.ui, [action.payload.key]: action.payload.value },
       };
-    
+
+    case 'SET_VIEW_MODE':
+      return {
+        ...state,
+        ui: { ...state.ui, viewMode: action.payload },
+      };
+
     case 'CLEAR_FILTERS':
       return {
         ...state,
@@ -228,7 +325,8 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
         ui: {
           ...state.ui,
           taskModalOpen: true,
-          editingTask: action.payload || null
+          editingTask: action.payload?.task || null,
+          selectedSectionId: action.payload?.sectionId || null
         },
       };
 
@@ -238,7 +336,8 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
         ui: {
           ...state.ui,
           taskModalOpen: false,
-          editingTask: null
+          editingTask: null,
+          selectedSectionId: null
         },
       };
 
@@ -259,6 +358,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedTasks = localStorage.getItem('taskManager.tasks');
     const savedProjects = localStorage.getItem('taskManager.projects');
+    const savedSections = localStorage.getItem('taskManager.sections');
     const savedUI = localStorage.getItem('taskManager.ui');
 
     if (savedTasks) {
@@ -267,6 +367,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
         createdAt: new Date(task.createdAt),
         updatedAt: new Date(task.updatedAt),
+        sectionId: task.sectionId || null,
+        order: task.order || 0,
       }));
       dispatch({ type: 'SET_TASKS', payload: tasks });
     } else {
@@ -281,11 +383,26 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_PROJECTS', payload: sampleProjects });
     }
 
+    if (savedSections) {
+      const sections = JSON.parse(savedSections).map((section: any) => ({
+        ...section,
+        createdAt: new Date(section.createdAt),
+        updatedAt: new Date(section.updatedAt),
+      }));
+      dispatch({ type: 'SET_SECTIONS', payload: sections });
+    }
+
     if (savedUI) {
       const ui = JSON.parse(savedUI);
       Object.entries(ui).forEach(([key, value]) => {
         dispatch({ type: 'SET_UI', payload: { key: key as keyof TaskState['ui'], value } });
       });
+    }
+
+    // Load view mode preference
+    const savedViewMode = localStorage.getItem('taskManager.viewMode');
+    if (savedViewMode && (savedViewMode === 'list' || savedViewMode === 'board')) {
+      dispatch({ type: 'SET_VIEW_MODE', payload: savedViewMode });
     }
   }, []);
 
@@ -297,6 +414,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('taskManager.projects', JSON.stringify(state.projects));
   }, [state.projects]);
+
+  useEffect(() => {
+    localStorage.setItem('taskManager.sections', JSON.stringify(state.sections));
+  }, [state.sections]);
 
   useEffect(() => {
     localStorage.setItem('taskManager.ui', JSON.stringify(state.ui));

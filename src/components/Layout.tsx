@@ -28,18 +28,20 @@ export default function Layout({ children }: LayoutProps) {
         />
       )}
 
-      {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
+      {/* Main Content Area - Fixed to viewport */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out min-w-0 ${
         state.ui.sidebarOpen
           ? 'lg:ml-[var(--sidebar-width)]'
           : 'ml-0'
       }`}>
-        {/* Header */}
-        <Header />
+        {/* Header - Constrained to available width */}
+        <div className="flex-shrink-0 w-full">
+          <Header />
+        </div>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="h-full">
+        {/* Main Content - Constrained to available width */}
+        <main className="flex-1 overflow-hidden min-w-0">
+          <div className="h-full w-full">
             {children}
           </div>
         </main>
