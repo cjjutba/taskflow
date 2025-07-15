@@ -1,45 +1,32 @@
 import React, { useState } from 'react';
-import { Calendar, FolderOpen, MoreVertical, Trash2, Edit3, Flag } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 import { useTask, Task } from '../contexts/TaskContext';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
-import { Badge } from './ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { format, isToday, isTomorrow, isPast } from 'date-fns';
+import { TaskActions } from './task/TaskActions';
+import { TaskMeta } from './task/TaskMeta';
+import { cn } from '../lib/utils';
 
 interface TaskCardProps {
   task: Task;
   onEdit?: (task: Task) => void;
+  compact?: boolean;
+  showProject?: boolean;
+  className?: string;
 }
 
-export default function TaskCard({ task, onEdit }: TaskCardProps) {
-  const { state, dispatch } = useTask();
+export default function TaskCard({ 
+  task, 
+  onEdit, 
+  compact = false,
+  showProject = true,
+  className 
+}: TaskCardProps) {
+  const { dispatch } = useTask();
   const [isHovered, setIsHovered] = useState(false);
-
-  const project = task.projectId 
-    ? state.projects.find(p => p.id === task.projectId)
-    : null;
 
   const toggleTask = () => {
     dispatch({ type: 'TOGGLE_TASK', payload: task.id });
-  };
-
-  const deleteTask = () => {
-    dispatch({ type: 'DELETE_TASK', payload: task.id });
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-warning';
-      case 'medium': return 'text-primary';
-      case 'low': return 'text-muted-foreground';
-      default: return 'text-muted-foreground';
-    }
   };
 
   const getPriorityBorder = (priority: string) => {
@@ -51,23 +38,15 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
     }
   };
 
-  const formatDueDate = (date: Date) => {
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
-    return format(date, 'MMM d');
-  };
-
-  const getDueDateColor = (date: Date) => {
-    if (isPast(date) && !isToday(date)) return 'text-destructive';
-    if (isToday(date)) return 'text-warning';
-    return 'text-muted-foreground';
-  };
-
   return (
     <div
-      className={`bg-card border border-border rounded-lg p-4 shadow-task transition-all duration-200 hover:shadow-card border-l-4 ${getPriorityBorder(task.priority)} ${
-        task.completed ? 'opacity-60' : ''
-      }`}
+      className={cn(
+        'group bg-card border border-border rounded-lg shadow-task transition-all duration-200 hover:shadow-card border-l-4',
+        getPriorityBorder(task.priority),
+        compact ? 'p-3' : 'p-4',
+        task.completed && 'opacity-60',
+        className
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -76,24 +55,27 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
         <Checkbox
           checked={task.completed}
           onCheckedChange={toggleTask}
-          className="mt-1"
+          className="mt-1 flex-shrink-0"
         />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start justify-between gap-2 mb-2">
             <h3 
-              className={`font-medium text-sm leading-tight ${
+              className={cn(
+                'font-medium leading-tight break-words',
+                compact ? 'text-sm' : 'text-sm',
                 task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-              }`}
+              )}
             >
               {task.title}
             </h3>
             
-            {/* Actions */}
-            <div className={`flex items-center gap-1 transition-opacity duration-200 ${
+            {/* Actions - Desktop */}
+            <div className={cn(
+              'hidden sm:flex items-center gap-1 transition-opacity duration-200 flex-shrink-0',
               isHovered ? 'opacity-100' : 'opacity-0'
-            }`}>
+            )}>
               {onEdit && (
                 <Button
                   variant="ghost"
@@ -104,66 +86,31 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
                   <Edit3 className="w-3 h-3" />
                 </Button>
               )}
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                    <MoreVertical className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={() => onEdit?.(task)}>
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={deleteTask}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <TaskActions task={task} onEdit={onEdit} />
+            </div>
+
+            {/* Actions - Mobile (Always visible) */}
+            <div className="sm:hidden flex-shrink-0">
+              <TaskActions task={task} onEdit={onEdit} />
             </div>
           </div>
 
           {/* Description */}
-          {task.description && (
-            <p className={`text-xs mt-1 leading-relaxed ${
+          {task.description && !compact && (
+            <p className={cn(
+              'text-xs leading-relaxed mb-3 break-words',
               task.completed ? 'line-through text-muted-foreground' : 'text-muted-foreground'
-            }`}>
+            )}>
               {task.description}
             </p>
           )}
 
           {/* Meta Information */}
-          <div className="flex items-center gap-3 mt-3 text-xs">
-            {/* Due Date */}
-            {task.dueDate && (
-              <div className={`flex items-center gap-1 ${getDueDateColor(task.dueDate)}`}>
-                <Calendar className="w-3 h-3" />
-                <span>{formatDueDate(task.dueDate)}</span>
-              </div>
-            )}
-
-            {/* Project */}
-            {project && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <div 
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: project.color }}
-                />
-                <span>{project.name}</span>
-              </div>
-            )}
-
-            {/* Priority */}
-            <div className={`flex items-center gap-1 ${getPriorityColor(task.priority)}`}>
-              <Flag className="w-3 h-3" />
-              <span className="capitalize">{task.priority}</span>
-            </div>
-          </div>
+          <TaskMeta 
+            task={task} 
+            showProject={showProject}
+            className={compact ? 'text-xs' : undefined}
+          />
         </div>
       </div>
     </div>

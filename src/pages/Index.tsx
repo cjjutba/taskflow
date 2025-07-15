@@ -5,6 +5,8 @@ import TodayView from '../components/views/TodayView';
 import AllTasksView from '../components/views/AllTasksView';
 import InboxView from '../components/views/InboxView';
 import CompletedView from '../components/views/CompletedView';
+import AnalyticsView from '../components/views/AnalyticsView';
+import SettingsView from '../components/views/SettingsView';
 import { Toaster } from '../components/ui/toaster';
 
 function TaskManagerContent() {
@@ -21,23 +23,9 @@ function TaskManagerContent() {
       case 'completed':
         return <CompletedView />;
       case 'analytics':
-        return (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-2">Analytics</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          </div>
-        );
+        return <AnalyticsView />;
       case 'settings':
-        return (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-2">Settings</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          </div>
-        );
+        return <SettingsView />;
       default:
         return <TodayView />;
     }
