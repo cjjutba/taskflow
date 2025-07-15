@@ -190,14 +190,14 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
               Project
             </label>
             <Select
-              value={formData.projectId}
-              onValueChange={(value) => handleChange('projectId', value)}
+              value={formData.projectId || "none"}
+              onValueChange={(value) => handleChange('projectId', value === "none" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a project..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Project</SelectItem>
+                <SelectItem value="none">No Project</SelectItem>
                 {state.projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     <div className="flex items-center gap-2">
