@@ -28,10 +28,10 @@
     --surface: 210 20% 98%;
     --surface-foreground: 222.2 84% 5.9%;
     
-    /* Primary - Blue 600 */
-    --primary: 221 83% 53%;
+    /* Primary - Softer Blue */
+    --primary: 221 70% 58%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 221 83% 48%;
+    --primary-hover: 221 70% 53%;
     
     /* Secondary Text */
     --secondary: 215 20% 65%;
@@ -68,7 +68,7 @@
     
     /* Layout */
     --radius: 0.5rem;
-    --sidebar-width: 280px;
+    --sidebar-width: 240px;
     --header-height: 56px;
 
     --sidebar-background: 0 0% 98%;
@@ -158,12 +158,25 @@
   
   /* Interactive States */
   .button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary-hover transition-colors duration-200;
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover transition-all duration-200;
   }
-  
+
   .card-hover {
-    @apply hover:bg-hover transition-colors duration-150;
+    @apply hover:bg-hover transition-all duration-200 hover:shadow-sm;
   }
+
+  /* Consistent Spacing System */
+  .spacing-xs { @apply p-2; }
+  .spacing-sm { @apply p-3; }
+  .spacing-md { @apply p-4; }
+  .spacing-lg { @apply p-6; }
+  .spacing-xl { @apply p-8; }
+
+  .gap-xs { @apply gap-2; }
+  .gap-sm { @apply gap-3; }
+  .gap-md { @apply gap-4; }
+  .gap-lg { @apply gap-6; }
+  .gap-xl { @apply gap-8; }
   
   /* Animations */
   .slide-in {
@@ -369,6 +382,10 @@
 
 .transition-fast {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-micro {
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hover effects */

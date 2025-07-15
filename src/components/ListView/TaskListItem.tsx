@@ -37,7 +37,7 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
       case 'high':
         return 'text-red-500';
       case 'medium':
-        return 'text-yellow-500';
+        return 'text-amber-500/80';
       case 'low':
         return 'text-green-500';
       default:
@@ -70,7 +70,8 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
     <div
       className={cn(
         'flex items-center gap-3 p-3 rounded-lg border transition-all duration-200',
-        'hover:shadow-sm hover:border-border/60',
+        'hover:shadow-sm hover:border-border/60 hover:bg-muted/20',
+        'overflow-hidden',
         task.completed ? 'bg-muted/30' : 'bg-background',
         isOverdue ? 'border-red-200 bg-red-50/50' : 'border-border'
       )}
@@ -81,7 +82,7 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
       <Checkbox
         checked={task.completed}
         onCheckedChange={handleToggleComplete}
-        className="flex-shrink-0"
+        className="flex-shrink-0 h-4 w-4"
       />
 
       {/* Content */}
@@ -89,9 +90,9 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             {/* Title */}
-            <h4 
+            <h4
               className={cn(
-                'font-medium text-sm leading-tight break-words',
+                'font-normal text-sm leading-tight break-words',
                 task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
               )}
             >
@@ -133,7 +134,8 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
               {task.dueDate && (
                 <div className={cn(
                   'flex items-center gap-1 text-xs',
-                  isOverdue ? 'text-red-500' : 'text-muted-foreground'
+                  isOverdue ? 'text-red-500' :
+                  formatDueDate(task.dueDate) === 'Today' ? 'text-amber-600' : 'text-muted-foreground'
                 )}>
                   <Calendar className="w-3 h-3" />
                   {formatDueDate(task.dueDate)}

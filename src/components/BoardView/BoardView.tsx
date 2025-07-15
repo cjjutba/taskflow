@@ -145,7 +145,7 @@ export default function BoardView({ tasks, onEdit, onAddSection }: BoardViewProp
             }
           }}
         >
-          <div className="flex gap-4 p-4 h-full board-background" style={{ minWidth: 'max-content' }}>
+          <div className="flex gap-6 p-6 h-full board-background" style={{ minWidth: 'max-content' }}>
             <SortableContext items={sectionIds} strategy={horizontalListSortingStrategy}>
               {/* Render unsorted tasks section first */}
               {groupedTasks.unsortedTasks.length > 0 && (
@@ -186,26 +186,18 @@ export default function BoardView({ tasks, onEdit, onAddSection }: BoardViewProp
           {showInlineCreator ? (
             <InlineSectionCreator onCancel={() => setShowInlineCreator(false)} />
           ) : (
-            <div className="flex-shrink-0 w-64">
-              <div className="rounded-lg h-full min-h-[200px] flex flex-col items-center justify-center p-4">
-                <div className="text-center flex flex-col items-center">
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
-                    <Plus className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-sm font-medium text-foreground mb-2">Add Section</h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Create a new section to organize your tasks
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddSection}
-                    className="gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Section
-                  </Button>
-                </div>
+            <div className="flex-shrink-0 w-64 p-2">
+              {/* Header aligned with section titles */}
+              <div className="mb-2 h-6 flex items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddSection}
+                  className="gap-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 h-6 text-xs transition-all duration-200"
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                  Add Section
+                </Button>
               </div>
             </div>
           )}

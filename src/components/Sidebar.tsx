@@ -3,18 +3,15 @@ import {
   Calendar,
   CheckSquare,
   Inbox,
-  FolderOpen,
   BarChart3,
-  Settings,
   Plus,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
   X
 } from 'lucide-react';
-import { useTask } from '../contexts/TaskContext';
+import { useTask, Project } from '../contexts/TaskContext';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
@@ -28,13 +25,12 @@ const navigationItems = [
 
 const bottomItems = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Sidebar() {
   const { state, dispatch } = useTask();
   const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<any>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   
   const getTaskCount = (viewId: string) => {
     const now = new Date();
@@ -91,7 +87,7 @@ export default function Sidebar() {
     setProjectModalOpen(true);
   };
 
-  const editProject = (project: any) => {
+  const editProject = (project: Project) => {
     setEditingProject(project);
     setProjectModalOpen(true);
   };
@@ -124,17 +120,16 @@ export default function Sidebar() {
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="p-1.5 bg-surface border border-border shadow-md hover:bg-muted w-8 h-8 py-3"
-          style={{
-            background: state.ui.sidebarOpen ? 'transparent' : 'hsl(var(--surface))',
-            border: state.ui.sidebarOpen ? 'none' : '1px solid hsl(var(--border))',
-            boxShadow: state.ui.sidebarOpen ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          }}
+          className={`p-1.5 w-8 h-8 transition-all duration-200 ${
+            state.ui.sidebarOpen
+              ? 'hover:bg-muted/50'
+              : 'bg-surface border border-border shadow-md hover:bg-muted'
+          }`}
         >
           {state.ui.sidebarOpen ? (
-            <PanelLeftClose className="w-4 h-4" />
+            <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
           ) : (
-            <PanelLeftOpen className="w-4 h-4" />
+            <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
           )}
         </Button>
       </div>
@@ -208,12 +203,9 @@ export default function Sidebar() {
                   {item.label}
                 </span>
                 {count > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-auto text-xs bg-muted-foreground/10"
-                  >
+                  <span className="ml-auto text-xs text-muted-foreground font-medium">
                     {count}
-                  </Badge>
+                  </span>
                 )}
               </Button>
             );
@@ -229,7 +221,7 @@ export default function Sidebar() {
                   className="p-1 h-5 w-5 hover:bg-muted"
                   onClick={openProjectModal}
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 text-xs text-muted-foreground font-medium" />
                 </Button>
               </div>
 
@@ -243,7 +235,7 @@ export default function Sidebar() {
                       <div key={project.id} className="group relative">
                         <Button
                           variant="ghost"
-                          className="w-full justify-start p-2 h-auto pr-7 text-sm"
+                          className="w-full justify-start p-2.5 h-auto text-sm"
                           onClick={() => {
                             dispatch({
                               type: 'SET_FILTER',
@@ -257,21 +249,25 @@ export default function Sidebar() {
                             style={{ backgroundColor: project.color }}
                           />
                           <span className="flex-1 text-left truncate">{project.name}</span>
-                          {projectTaskCount > 0 && (
-                            <Badge
-                              variant="secondary"
-                              className="ml-2 text-xs bg-muted-foreground/10 flex-shrink-0"
-                            >
-                              {projectTaskCount}
-                            </Badge>
-                          )}
+
+                          {/* Right side content - properly aligned */}
+                          <div className="ml-auto flex items-center relative">
+                            {/* Number counter - matches navigation items alignment */}
+                            {projectTaskCount > 0 && (
+                              <span className="text-xs text-muted-foreground font-medium group-hover:opacity-0 transition-opacity duration-200">
+                                {projectTaskCount}
+                              </span>
+                            )}
+
+                            {/* 3-dot menu - positioned in same location as counter */}
+                            <div className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <ProjectActions
+                                project={project}
+                                onEdit={editProject}
+                              />
+                            </div>
+                          </div>
                         </Button>
-                        <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
-                          <ProjectActions
-                            project={project}
-                            onEdit={editProject}
-                          />
-                        </div>
                       </div>
                     );
                   })}

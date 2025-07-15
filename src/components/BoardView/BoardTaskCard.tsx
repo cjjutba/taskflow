@@ -90,10 +90,10 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
     <div
       className={cn(
         'task-card bg-white rounded-md border shadow-sm p-1.5 cursor-pointer transition-all duration-200 group',
-        'hover:shadow-md hover:border-gray-300 active:scale-[0.98]',
-        'touch-manipulation select-none',
+        'hover:shadow-md hover:border-border/60 hover:bg-muted/10',
+        'touch-manipulation select-none overflow-hidden',
         task.completed ? 'opacity-75' : '',
-        isOverdue ? 'border-red-200 bg-red-50/30' : 'border-gray-200',
+        isOverdue ? 'border-red-200 bg-red-50/30' : 'border-border',
         isDragging && 'opacity-50 rotate-2 scale-105 shadow-lg'
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -108,11 +108,11 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
           checked={task.completed}
           onCheckedChange={handleToggleComplete}
           onClick={(e) => e.stopPropagation()}
-          className="flex-shrink-0 h-3.5 w-3.5 mt-0.5"
+          className="flex-shrink-0 h-3 w-3 mt-0.5"
         />
 
         <h4 className={cn(
-          'font-medium text-xs leading-tight flex-1 line-clamp-2',
+          'font-normal text-xs leading-tight flex-1 line-clamp-2',
           task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
         )}>
           {task.title}
@@ -176,9 +176,9 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
             <Badge
               variant="outline"
               className={cn(
-                "text-xs px-1 py-0 border font-medium h-4 text-xs leading-none",
+                "text-xs px-1 py-0 border font-normal h-4 text-xs leading-none",
                 task.priority === 'high' && "bg-red-50 text-red-700 border-red-200",
-                task.priority === 'medium' && "bg-amber-50 text-amber-700 border-amber-200",
+                task.priority === 'medium' && "bg-amber-50/60 text-amber-600 border-amber-200/60",
                 task.priority === 'low' && "bg-emerald-50 text-emerald-700 border-emerald-200"
               )}
             >
@@ -204,6 +204,8 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
             'flex items-center gap-0.5 text-xs shrink-0',
             isOverdue
               ? 'text-red-600'
+              : formatDueDate(task.dueDate) === 'Today'
+              ? 'text-amber-600'
               : 'text-muted-foreground'
           )}>
             {isOverdue ? (
@@ -211,7 +213,7 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
             ) : (
               <Calendar className="w-2.5 h-2.5" />
             )}
-            <span className="font-medium text-xs">
+            <span className="font-normal text-xs">
               {formatDueDate(task.dueDate)}
             </span>
           </div>

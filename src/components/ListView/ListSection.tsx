@@ -67,7 +67,7 @@ export default function ListSection({
   const completedCount = tasks.filter(task => task.completed).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Section Header */}
       <div className="flex items-center justify-between group">
         <div className="flex items-center gap-2 flex-1">
@@ -102,8 +102,8 @@ export default function ListSection({
             </div>
           ) : (
             <div className="flex items-center gap-3 flex-1">
-              <h3 
-                className="text-sm font-medium text-foreground cursor-pointer"
+              <h3
+                className="text-base font-semibold text-foreground cursor-pointer"
                 onClick={() => !isUnsorted && setIsEditing(true)}
               >
                 {section.name}
@@ -169,9 +169,9 @@ export default function ListSection({
 
       {/* Tasks */}
       {!isCollapsed && (
-        <div className="ml-6 space-y-2">
+        <div className="ml-6 space-y-3">
           {tasks.length === 0 ? (
-            <div className="py-4 text-center text-muted-foreground text-sm">
+            <div className="py-6 text-center text-muted-foreground text-sm">
               No tasks in this section
             </div>
           ) : (

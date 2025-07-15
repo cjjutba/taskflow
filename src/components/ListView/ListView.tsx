@@ -86,40 +86,49 @@ export default function ListView({ tasks, onEdit, onAddSection }: ListViewProps)
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-8 space-y-8">
       {/* Render unsorted tasks first */}
       {groupedTasks.unsortedTasks.length > 0 && (
-        <ListSection
-          section={{
-            id: 'unsorted',
-            name: 'Unsorted',
-            order: 0,
-            viewId: state.ui.activeView,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }}
-          tasks={groupedTasks.unsortedTasks}
-          isCollapsed={collapsedSections.has('unsorted')}
-          onToggleCollapse={() => toggleSectionCollapse('unsorted')}
-          onEdit={handleEdit}
-          isUnsorted={true}
-        />
+        <>
+          <ListSection
+            section={{
+              id: 'unsorted',
+              name: 'Unsorted',
+              order: 0,
+              viewId: state.ui.activeView,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }}
+            tasks={groupedTasks.unsortedTasks}
+            isCollapsed={collapsedSections.has('unsorted')}
+            onToggleCollapse={() => toggleSectionCollapse('unsorted')}
+            onEdit={handleEdit}
+            isUnsorted={true}
+          />
+          {groupedTasks.sortedSections.length > 0 && (
+            <div className="border-t border-border/50" />
+          )}
+        </>
       )}
 
       {/* Render sections */}
-      {groupedTasks.sortedSections.map(section => {
+      {groupedTasks.sortedSections.map((section, index) => {
         const sectionTasks = groupedTasks.groups[section.id];
         const isCollapsed = collapsedSections.has(section.id);
 
         return (
-          <ListSection
-            key={section.id}
-            section={section}
-            tasks={sectionTasks}
-            isCollapsed={isCollapsed}
-            onToggleCollapse={() => toggleSectionCollapse(section.id)}
-            onEdit={handleEdit}
-          />
+          <div key={section.id}>
+            <ListSection
+              section={section}
+              tasks={sectionTasks}
+              isCollapsed={isCollapsed}
+              onToggleCollapse={() => toggleSectionCollapse(section.id)}
+              onEdit={handleEdit}
+            />
+            {index < groupedTasks.sortedSections.length - 1 && (
+              <div className="mt-8 border-t border-border/50" />
+            )}
+          </div>
         );
       })}
     </div>

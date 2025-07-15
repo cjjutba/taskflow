@@ -51,7 +51,7 @@ export default function TaskHeader({
           {taskCount} tasks
         </Badge>
         {completedCount > 0 && (
-          <Badge variant="outline" className="text-xs flex-shrink-0 border-green-200 text-green-700 bg-green-50">
+          <Badge variant="outline" className="text-xs flex-shrink-0 border-muted-foreground/20 text-muted-foreground bg-muted/30">
             {completedCount}/{totalCount} completed
           </Badge>
         )}

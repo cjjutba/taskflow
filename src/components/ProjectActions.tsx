@@ -65,12 +65,12 @@ export function ProjectActions({ project, onEdit, className }: ProjectActionsPro
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={`p-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity ${className}`}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`p-0 h-auto w-auto min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-0 hover:bg-transparent ${isOpen ? 'opacity-100' : ''} ${className}`}
           >
-            <MoreHorizontal className="w-3 h-3" />
+            <MoreHorizontal className="w-3 h-3 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
