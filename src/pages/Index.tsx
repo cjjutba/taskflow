@@ -1,13 +1,61 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from 'react';
+import { TaskProvider, useTask } from '../contexts/TaskContext';
+import Layout from '../components/Layout';
+import TodayView from '../components/views/TodayView';
+import AllTasksView from '../components/views/AllTasksView';
+import InboxView from '../components/views/InboxView';
+import CompletedView from '../components/views/CompletedView';
+import { Toaster } from '../components/ui/toaster';
+
+function TaskManagerContent() {
+  const { state } = useTask();
+
+  const renderView = () => {
+    switch (state.ui.activeView) {
+      case 'today':
+        return <TodayView />;
+      case 'inbox':
+        return <InboxView />;
+      case 'all':
+        return <AllTasksView />;
+      case 'completed':
+        return <CompletedView />;
+      case 'analytics':
+        return (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold mb-2">Analytics</h2>
+              <p className="text-muted-foreground">Coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold mb-2">Settings</h2>
+              <p className="text-muted-foreground">Coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return <TodayView />;
+    }
+  };
+
+  return (
+    <Layout>
+      {renderView()}
+    </Layout>
+  );
+}
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <TaskProvider>
+      <TaskManagerContent />
+      <Toaster />
+    </TaskProvider>
   );
 };
 
