@@ -131,13 +131,6 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
   }
-  
-  .text-xs { @apply text-xs; }
-  .text-sm { @apply text-sm; }
-  .text-base { @apply text-base; }
-  .text-lg { @apply text-lg; }
-  .text-xl { @apply text-xl; }
-  .text-2xl { @apply text-2xl; }
 }
 
 @layer components {
