@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Calendar,
   CheckSquare,
@@ -17,18 +18,19 @@ import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
 
 const navigationItems = [
-  { id: 'today', label: 'Today', icon: Calendar },
-  { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'all', label: 'All Tasks', icon: CheckSquare },
-  { id: 'completed', label: 'Completed', icon: CheckSquare },
+  { id: 'today', label: 'Today', icon: Calendar, path: '/' },
+  { id: 'inbox', label: 'Inbox', icon: Inbox, path: '/inbox' },
+  { id: 'all', label: 'All Tasks', icon: CheckSquare, path: '/all-tasks' },
+  { id: 'completed', label: 'Completed', icon: CheckSquare, path: '/completed' },
 ];
 
 const bottomItems = [
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/analytics' },
 ];
 
 export default function Sidebar() {
   const { state, dispatch } = useTask();
+  const location = useLocation();
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   
@@ -57,11 +59,8 @@ export default function Sidebar() {
     }
   };
 
-  const setActiveView = (viewId: string) => {
-    dispatch({
-      type: 'SET_UI',
-      payload: { key: 'activeView', value: viewId }
-    });
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
   };
 
   const toggleSidebar = () => {
@@ -187,19 +186,20 @@ export default function Sidebar() {
           {navigationItems.map((item) => {
             const IconComponent = item.icon;
             const count = getTaskCount(item.id);
-            const isActive = state.ui.activeView === item.id;
+            const isActive = isActiveRoute(item.path);
 
             return (
-              <Button
+              <Link
                 key={item.id}
-                variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-2.5 h-auto ${
-                  isActive ? 'bg-primary/10 text-primary border border-primary/20' : ''
+                to={item.path}
+                className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                  isActive
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
-                onClick={() => setActiveView(item.id)}
               >
                 <IconComponent className="w-4 h-4 mr-2.5" />
-                <span className="flex-1 text-left text-sm">
+                <span className="flex-1 text-left">
                   {item.label}
                 </span>
                 {count > 0 && (
@@ -207,7 +207,7 @@ export default function Sidebar() {
                     {count}
                   </span>
                 )}
-              </Button>
+              </Link>
             );
           })}
           
@@ -231,18 +231,17 @@ export default function Sidebar() {
                       task => task.projectId === project.id && !task.completed
                     ).length;
 
+                    const isProjectActive = location.pathname === `/project/${project.id}`;
+
                     return (
                       <div key={project.id} className="group relative">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start p-2.5 h-auto text-sm"
-                          onClick={() => {
-                            dispatch({
-                              type: 'SET_FILTER',
-                              payload: { key: 'project', value: project.id }
-                            });
-                            setActiveView('all');
-                          }}
+                        <Link
+                          to={`/project/${project.id}`}
+                          className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                            isProjectActive
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
                         >
                           <div
                             className="w-2.5 h-2.5 rounded-full mr-2.5 flex-shrink-0"
@@ -267,7 +266,7 @@ export default function Sidebar() {
                               />
                             </div>
                           </div>
-                        </Button>
+                        </Link>
                       </div>
                     );
                   })}
@@ -280,22 +279,23 @@ export default function Sidebar() {
         <div className="p-3 space-y-1 border-t border-border bg-surface">
           {bottomItems.map((item) => {
             const IconComponent = item.icon;
-            const isActive = state.ui.activeView === item.id;
+            const isActive = isActiveRoute(item.path);
 
             return (
-              <Button
+              <Link
                 key={item.id}
-                variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-2.5 h-auto ${
-                  isActive ? 'bg-primary/10 text-primary' : ''
+                to={item.path}
+                className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
-                onClick={() => setActiveView(item.id)}
               >
                 <IconComponent className="w-4 h-4 mr-2.5" />
-                <span className="flex-1 text-left text-sm">
+                <span className="flex-1 text-left">
                   {item.label}
                 </span>
-              </Button>
+              </Link>
             );
           })}
         </div>
