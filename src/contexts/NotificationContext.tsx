@@ -116,7 +116,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       }
     });
-  }, [taskState.tasks, state.notifications]);
+  }, [taskState.tasks]); // Removed state.notifications from dependency array
 
   return (
     <NotificationContext.Provider value={{ state, dispatch }}>

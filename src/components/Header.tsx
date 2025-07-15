@@ -41,35 +41,6 @@ export default function Header() {
 
         {/* Notifications */}
         <NotificationDropdown />
-
-        {/* Settings */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-2"
-          onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'activeView', value: 'settings' } })}
-        >
-          <Settings className="w-5 h-5" />
-        </Button>
-
-        {/* Profile */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-8 h-8 p-0 rounded-full bg-muted">
-              <span className="text-sm font-medium">JD</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
-            <DropdownMenuItem onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'activeView', value: 'settings' } })}>
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );

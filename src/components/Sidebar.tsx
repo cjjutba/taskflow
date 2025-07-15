@@ -7,13 +7,11 @@ import {
   BarChart3,
   Plus,
   PanelLeftClose,
-  PanelLeftOpen,
-  Search,
-  X
+  PanelLeftOpen
 } from 'lucide-react';
 import { useTask, Project } from '../contexts/TaskContext';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { SearchBar } from './Search/SearchBar';
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
 
@@ -70,16 +68,7 @@ export default function Sidebar() {
     });
   };
 
-  const handleSearch = (value: string) => {
-    dispatch({
-      type: 'SET_FILTER',
-      payload: { key: 'search', value }
-    });
-  };
 
-  const clearSearch = () => {
-    handleSearch('');
-  };
 
   const openProjectModal = () => {
     setEditingProject(null);
@@ -159,25 +148,12 @@ export default function Sidebar() {
 
         {/* Search Section */}
         <div className="p-3 border-b border-border">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tasks..."
-              className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-8"
-              value={state.filters.search}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            {state.filters.search && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
-                onClick={clearSearch}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
+          <SearchBar
+            placeholder="Search tasks..."
+            compact={true}
+            showFilters={true}
+            className="w-full"
+          />
         </div>
 
         {/* Main Navigation - Scrollable */}
