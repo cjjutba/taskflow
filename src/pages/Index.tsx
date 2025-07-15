@@ -1,5 +1,6 @@
 import React from 'react';
 import { TaskProvider, useTask } from '../contexts/TaskContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import Layout from '../components/Layout';
 import TodayView from '../components/views/TodayView';
 import AllTasksView from '../components/views/AllTasksView';
@@ -41,8 +42,10 @@ function TaskManagerContent() {
 const Index = () => {
   return (
     <TaskProvider>
-      <TaskManagerContent />
-      <Toaster />
+      <NotificationProvider>
+        <TaskManagerContent />
+        <Toaster />
+      </NotificationProvider>
     </TaskProvider>
   );
 };

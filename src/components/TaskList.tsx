@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Plus, Filter, SortAsc } from 'lucide-react';
 import { useTask, Task } from '../contexts/TaskContext';
 import TaskCard from './TaskCard';
-import TaskModal from './TaskModal';
+
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
@@ -20,8 +21,6 @@ interface TaskListProps {
 
 export default function TaskList({ title, tasks, showAddButton = true }: TaskListProps) {
   const { state, dispatch } = useTask();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
@@ -58,26 +57,71 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
         break;
     }
 
-    // Sort tasks: incomplete first, then by priority, then by due date
+    // Due date filter
+    if (state.filters.dueDate) {
+      filtered = filtered.filter(task => {
+        if (!task.dueDate) return false;
+
+        const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
+
+        if (state.filters.dueDate.overdue) {
+          return taskDate < (state.filters.dueDate.end || new Date());
+        }
+
+        if (state.filters.dueDate.start && state.filters.dueDate.end) {
+          return taskDate >= state.filters.dueDate.start && taskDate < state.filters.dueDate.end;
+        }
+
+        if (state.filters.dueDate.start) {
+          return taskDate >= state.filters.dueDate.start;
+        }
+
+        if (state.filters.dueDate.end) {
+          return taskDate < state.filters.dueDate.end;
+        }
+
+        return true;
+      });
+    }
+
+    // Sort tasks based on selected sort option
     filtered.sort((a, b) => {
-      // Completed tasks go to bottom
-      if (a.completed !== b.completed) {
+      // Completed tasks always go to bottom unless specifically viewing completed tasks
+      if (state.filters.status !== 'completed' && a.completed !== b.completed) {
         return a.completed ? 1 : -1;
       }
 
-      // Priority sorting (high -> medium -> low)
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
-      const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-      if (priorityDiff !== 0) return priorityDiff;
+      const sortBy = state.filters.sortBy || 'dueDate';
+      const direction = state.filters.sortDirection === 'desc' ? -1 : 1;
 
-      // Due date sorting (soonest first)
-      if (a.dueDate && b.dueDate) {
-        return a.dueDate.getTime() - b.dueDate.getTime();
+      switch (sortBy) {
+        case 'priority': {
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          const priorityDiff = (priorityOrder[b.priority] - priorityOrder[a.priority]) * direction;
+          if (priorityDiff !== 0) return priorityDiff;
+          break;
+        }
+
+        case 'dueDate': {
+          if (a.dueDate && b.dueDate) {
+            return (a.dueDate.getTime() - b.dueDate.getTime()) * direction;
+          }
+          if (a.dueDate && !b.dueDate) return -1 * direction;
+          if (!a.dueDate && b.dueDate) return 1 * direction;
+          break;
+        }
+
+        case 'createdAt': {
+          return (b.createdAt.getTime() - a.createdAt.getTime()) * direction;
+        }
+
+        case 'alphabetical': {
+          return a.title.localeCompare(b.title) * direction;
+        }
       }
-      if (a.dueDate && !b.dueDate) return -1;
-      if (!a.dueDate && b.dueDate) return 1;
 
-      // Creation date (newest first)
+      // Fallback to creation date if primary sort is equal
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
 
@@ -88,13 +132,7 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
   const totalCount = tasks.length;
 
   const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingTask(null);
+    dispatch({ type: 'OPEN_TASK_MODAL', payload: task });
   };
 
   const getActiveFilters = () => {
@@ -106,6 +144,27 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
     }
     if (state.filters.priority) filters.push(`Priority: ${state.filters.priority}`);
     if (state.filters.status !== 'all') filters.push(`Status: ${state.filters.status}`);
+    if (state.filters.dueDate) {
+      if (state.filters.dueDate.overdue) {
+        filters.push('Overdue tasks');
+      } else if (state.filters.dueDate.start && state.filters.dueDate.end) {
+        const start = state.filters.dueDate.start;
+        const end = state.filters.dueDate.end;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (start.getTime() === today.getTime() && end.getTime() === tomorrow.getTime()) {
+          filters.push('Due today');
+        } else {
+          filters.push(`Due: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`);
+        }
+      }
+    }
+    if (state.filters.sortBy && state.filters.sortBy !== 'dueDate') {
+      filters.push(`Sort: ${state.filters.sortBy}`);
+    }
     return filters;
   };
 
@@ -141,11 +200,60 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>All Tasks</DropdownMenuItem>
-              <DropdownMenuItem>High Priority</DropdownMenuItem>
-              <DropdownMenuItem>Due Today</DropdownMenuItem>
-              <DropdownMenuItem>Overdue</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56 bg-white border border-border shadow-lg">
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'CLEAR_FILTERS'
+              })}>
+                All Tasks
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'priority', value: 'high' }
+              })}>
+                High Priority
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'status', value: 'active' }
+              })}>
+                Active Tasks
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => {
+                // Set a custom filter for due today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                dispatch({
+                  type: 'SET_FILTER',
+                  payload: {
+                    key: 'dueDate',
+                    value: { start: today, end: tomorrow }
+                  }
+                });
+              }}>
+                Due Today
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => {
+                // Set a custom filter for overdue tasks
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                dispatch({
+                  type: 'SET_FILTER',
+                  payload: {
+                    key: 'dueDate',
+                    value: { end: today, overdue: true }
+                  }
+                });
+              }}>
+                Overdue
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -153,22 +261,66 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
-                <SortAsc className="w-4 h-4" />
+                {state.filters.sortDirection === 'desc' ? (
+                  <SortAsc className="w-4 h-4 rotate-180" />
+                ) : (
+                  <SortAsc className="w-4 h-4" />
+                )}
                 Sort
+                {state.filters.sortBy && state.filters.sortBy !== 'dueDate' && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {state.filters.sortBy.charAt(0).toUpperCase() + state.filters.sortBy.slice(1)}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem>Due Date</DropdownMenuItem>
-              <DropdownMenuItem>Priority</DropdownMenuItem>
-              <DropdownMenuItem>Created Date</DropdownMenuItem>
-              <DropdownMenuItem>Alphabetical</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'sortBy', value: 'dueDate' }
+              })}>
+                Due Date
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'sortBy', value: 'priority' }
+              })}>
+                Priority
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'sortBy', value: 'createdAt' }
+              })}>
+                Created Date
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: { key: 'sortBy', value: 'alphabetical' }
+              })}>
+                Alphabetical
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={() => dispatch({
+                type: 'SET_FILTER',
+                payload: {
+                  key: 'sortDirection',
+                  value: state.filters.sortDirection === 'asc' ? 'desc' : 'asc'
+                }
+              })}>
+                {state.filters.sortDirection === 'asc' ? 'Sort Descending' : 'Sort Ascending'}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Add Task Button */}
           {showAddButton && (
-            <Button 
-              onClick={() => setIsModalOpen(true)}
+            <Button
+              onClick={() => dispatch({ type: 'OPEN_TASK_MODAL' })}
               className="gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -215,7 +367,7 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
               }
             </p>
             {showAddButton && activeFilters.length === 0 && (
-              <Button onClick={() => setIsModalOpen(true)}>
+              <Button onClick={() => dispatch({ type: 'OPEN_TASK_MODAL' })}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Task
               </Button>
@@ -232,12 +384,7 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
         )}
       </div>
 
-      {/* Task Modal */}
-      <TaskModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        task={editingTask}
-      />
+
     </div>
   );
 }

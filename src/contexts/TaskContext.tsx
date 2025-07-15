@@ -27,10 +27,19 @@ interface TaskState {
     project: string | null;
     priority: string | null;
     status: 'all' | 'active' | 'completed';
+    dueDate: {
+      start?: Date;
+      end?: Date;
+      overdue?: boolean;
+    } | null;
+    sortBy?: 'dueDate' | 'priority' | 'createdAt' | 'alphabetical';
+    sortDirection?: 'asc' | 'desc';
   };
   ui: {
     sidebarOpen: boolean;
     activeView: string;
+    taskModalOpen: boolean;
+    editingTask: Task | null;
   };
 }
 
@@ -46,7 +55,9 @@ type TaskAction =
   | { type: 'DELETE_PROJECT'; payload: string }
   | { type: 'SET_FILTER'; payload: { key: keyof TaskState['filters']; value: any } }
   | { type: 'SET_UI'; payload: { key: keyof TaskState['ui']; value: any } }
-  | { type: 'CLEAR_FILTERS' };
+  | { type: 'CLEAR_FILTERS' }
+  | { type: 'OPEN_TASK_MODAL'; payload?: Task | null }
+  | { type: 'CLOSE_TASK_MODAL' };
 
 const initialState: TaskState = {
   tasks: [],
@@ -56,10 +67,15 @@ const initialState: TaskState = {
     project: null,
     priority: null,
     status: 'all',
+    dueDate: null,
+    sortBy: 'dueDate',
+    sortDirection: 'asc',
   },
   ui: {
     sidebarOpen: true,
     activeView: 'today',
+    taskModalOpen: false,
+    editingTask: null,
   },
 };
 
@@ -195,9 +211,37 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
     case 'CLEAR_FILTERS':
       return {
         ...state,
-        filters: { search: '', project: null, priority: null, status: 'all' },
+        filters: {
+          search: '',
+          project: null,
+          priority: null,
+          status: 'all',
+          dueDate: null,
+          sortBy: 'dueDate',
+          sortDirection: 'asc',
+        },
       };
-    
+
+    case 'OPEN_TASK_MODAL':
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          taskModalOpen: true,
+          editingTask: action.payload || null
+        },
+      };
+
+    case 'CLOSE_TASK_MODAL':
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          taskModalOpen: false,
+          editingTask: null
+        },
+      };
+
     default:
       return state;
   }

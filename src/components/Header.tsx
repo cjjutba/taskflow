@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Plus, Menu, Bell, Settings, X } from 'lucide-react';
+import { Search, Menu, Settings, X } from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Badge } from './ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Header() {
   const { state, dispatch } = useTask();
@@ -35,18 +35,6 @@ export default function Header() {
     setShowMobileSearch(false);
   };
 
-  const openTaskModal = () => {
-    // This would typically trigger a global modal state
-    // For now, we'll use a custom event
-    window.dispatchEvent(new CustomEvent('openTaskModal'));
-  };
-
-  const overdueTasks = state.tasks.filter(task => 
-    !task.completed && 
-    task.dueDate && 
-    task.dueDate < new Date()
-  ).length;
-
   return (
     <>
       <header 
@@ -60,7 +48,7 @@ export default function Header() {
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="p-2 lg:hidden"
+              className="p-2"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -82,7 +70,7 @@ export default function Header() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-10 bg-surface border-border"
+                className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 value={state.filters.search}
                 onChange={(e) => handleSearch(e.target.value)}
               />
@@ -90,7 +78,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
                   onClick={clearSearch}
                 >
                   <X className="w-3 h-3" />
@@ -101,17 +89,6 @@ export default function Header() {
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
-            {/* Quick Add Task */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:flex items-center gap-2"
-              onClick={openTaskModal}
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden lg:inline">Add Task</span>
-            </Button>
-
             {/* Mobile Search Toggle */}
             <Button
               variant="ghost"
@@ -123,35 +100,7 @@ export default function Header() {
             </Button>
 
             {/* Notifications */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2 relative">
-                  <Bell className="w-5 h-5" />
-                  {overdueTasks > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
-                    >
-                      {overdueTasks}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <div className="p-2">
-                  <h4 className="font-semibold text-sm mb-2">Notifications</h4>
-                  {overdueTasks > 0 ? (
-                    <div className="text-sm text-muted-foreground">
-                      You have {overdueTasks} overdue task{overdueTasks > 1 ? 's' : ''}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      All caught up! 🎉
-                    </div>
-                  )}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <NotificationDropdown />
 
             {/* Settings */}
             <Button
@@ -170,7 +119,7 @@ export default function Header() {
                   <span className="text-sm font-medium">JD</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
                 <DropdownMenuItem onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'activeView', value: 'settings' } })}>
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
@@ -191,7 +140,7 @@ export default function Header() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-10 bg-surface border-border"
+                className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 value={state.filters.search}
                 onChange={(e) => handleSearch(e.target.value)}
                 autoFocus
@@ -200,7 +149,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
                   onClick={clearSearch}
                 >
                   <X className="w-3 h-3" />
@@ -213,8 +162,9 @@ export default function Header() {
 
       {/* Mobile Overlay */}
       {state.ui.sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
+          style={{ top: 'var(--header-height)' }}
           onClick={toggleSidebar}
         />
       )}
