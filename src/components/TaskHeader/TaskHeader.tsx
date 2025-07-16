@@ -47,7 +47,7 @@ export default function TaskHeader({
       {/* Left Section - Title and Stats */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <h1 className="text-2xl font-semibold text-foreground truncate">{title}</h1>
-        <Badge variant="secondary" className="text-xs flex-shrink-0 bg-gray-100 text-gray-700 hover:bg-gray-200">
+        <Badge variant="secondary" className="text-xs flex-shrink-0">
           {taskCount} tasks
         </Badge>
         {completedCount > 0 && (
@@ -73,22 +73,22 @@ export default function TaskHeader({
               size="sm" 
               className={cn(
                 "gap-2 h-9 px-3 rounded-lg transition-all duration-200",
-                "hover:bg-gray-100 hover:text-gray-900",
-                "border border-transparent hover:border-gray-200",
-                activeFilters.length > 0 && "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                "hover:bg-muted hover:text-foreground",
+                "border border-transparent hover:border-border",
+                activeFilters.length > 0 && "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               )}
             >
               <Filter className="w-4 h-4" />
               <span className="font-medium">Filter</span>
               {activeFilters.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-blue-100 text-blue-700">
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {activeFilters.length}
                 </Badge>
               )}
               <ChevronDown className="w-3 h-3 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-white border border-border shadow-lg">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={() => onClearFilters()}>
               All Tasks
             </DropdownMenuItem>
@@ -125,9 +125,9 @@ export default function TaskHeader({
               size="sm" 
               className={cn(
                 "gap-2 h-9 px-3 rounded-lg transition-all duration-200",
-                "hover:bg-gray-100 hover:text-gray-900",
-                "border border-transparent hover:border-gray-200",
-                sortBy && sortBy !== 'dueDate' && "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                "hover:bg-muted hover:text-foreground",
+                "border border-transparent hover:border-border",
+                sortBy && sortBy !== 'dueDate' && "bg-secondary/50 text-secondary-foreground border-secondary hover:bg-secondary/70"
               )}
             >
               {sortDirection === 'desc' ? (
@@ -137,7 +137,7 @@ export default function TaskHeader({
               )}
               <span className="font-medium">Sort</span>
               {sortBy && sortBy !== 'dueDate' && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-purple-100 text-purple-700">
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                   {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
                 </Badge>
               )}

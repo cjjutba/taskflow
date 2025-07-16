@@ -271,7 +271,7 @@ export default function AllTasksPage() {
           <Card>
             <CardContent className="p-3">
               <div className="text-center">
-                <p className="text-lg font-bold text-gray-500">{stats.noDueDate}</p>
+                <p className="text-lg font-bold text-muted-foreground">{stats.noDueDate}</p>
                 <p className="text-xs text-muted-foreground">No Date</p>
               </div>
             </CardContent>

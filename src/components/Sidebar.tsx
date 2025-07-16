@@ -111,7 +111,7 @@ export default function Sidebar() {
           className={`p-1.5 w-8 h-8 transition-all duration-200 ${
             state.ui.sidebarOpen
               ? 'hover:bg-muted/50'
-              : 'bg-surface border border-border shadow-md hover:bg-muted'
+              : 'bg-background border border-border shadow-md hover:bg-muted'
           }`}
         >
           {state.ui.sidebarOpen ? (
@@ -123,7 +123,7 @@ export default function Sidebar() {
       </div>
 
       <aside
-        className="fixed left-0 top-0 z-40 bg-surface border-r border-border h-screen transition-transform duration-300 ease-in-out"
+        className="fixed left-0 top-0 z-40 bg-background border-r border-border h-screen transition-transform duration-300 ease-in-out"
         style={{
           width: 'var(--sidebar-width)',
           transform: state.ui.sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'

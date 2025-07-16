@@ -47,7 +47,7 @@ export function PageLoading({ message = "Loading..." }: PageLoadingProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
       <LoadingSpinner size="lg" />
-      <p className="text-gray-600 text-sm">{message}</p>
+      <p className="text-muted-foreground text-sm">{message}</p>
     </div>
   );
 }

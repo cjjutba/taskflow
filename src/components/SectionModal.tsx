@@ -109,7 +109,7 @@ export default function SectionModal({ isOpen, onClose, editingSection }: Sectio
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Edit Section' : 'Create New Section'}

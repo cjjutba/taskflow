@@ -169,7 +169,7 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] bg-white">
+      <DialogContent className="sm:max-w-md max-h-[85vh]">
         <DialogHeader className="pb-2 border-b border-border">
           <DialogTitle className="text-base font-semibold text-foreground">
             {isEditing ? 'Edit Task' : 'Create New Task'}

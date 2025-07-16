@@ -72,8 +72,8 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
         'flex items-center gap-3 p-3 rounded-lg border transition-all duration-200',
         'hover:shadow-sm hover:border-border/60 hover:bg-muted/20',
         'overflow-hidden',
-        task.completed ? 'bg-muted/30' : 'bg-background',
-        isOverdue ? 'border-red-200 bg-red-50/50' : 'border-border'
+        task.completed ? 'bg-muted/30' : 'bg-card',
+        isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20' : 'border-border'
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

@@ -36,13 +36,13 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'border-red-200 bg-red-50';
+        return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20';
       case 'medium':
-        return 'border-yellow-200 bg-yellow-50';
+        return 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/20';
       case 'low':
-        return 'border-green-200 bg-green-50';
+        return 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20';
       default:
-        return 'border-border bg-background';
+        return 'border-border bg-card';
     }
   };
 
@@ -89,11 +89,11 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
   return (
     <div
       className={cn(
-        'task-card bg-white rounded-md border shadow-sm p-1.5 cursor-pointer transition-all duration-200 group',
+        'task-card bg-card rounded-md border shadow-sm p-1.5 cursor-pointer transition-all duration-200 group',
         'hover:shadow-md hover:border-border/60 hover:bg-muted/10',
         'touch-manipulation select-none overflow-hidden',
         task.completed ? 'opacity-75' : '',
-        isOverdue ? 'border-red-200 bg-red-50/30' : 'border-border',
+        isOverdue ? 'border-red-200 bg-red-50/30 dark:border-red-800 dark:bg-red-950/20' : 'border-border',
         isDragging && 'opacity-50 rotate-2 scale-105 shadow-lg'
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -190,7 +190,7 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
           {project && (
             <Badge
               variant="secondary"
-              className="text-xs px-1 py-0 bg-gray-100 text-gray-700 h-4 leading-none truncate max-w-16"
+              className="text-xs px-1 py-0 h-4 leading-none truncate max-w-16"
               title={project.name}
             >
               {project.name}

@@ -97,7 +97,7 @@ export default function InlineSectionCreator({ onCancel, className }: InlineSect
   };
 
   return (
-    <div className={cn('flex-shrink-0 w-64 bg-white rounded-lg border-2 border-dashed border-primary/30 p-3', className)}>
+    <div className={cn('flex-shrink-0 w-64 bg-card rounded-lg border-2 border-dashed border-primary/30 p-3', className)}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">

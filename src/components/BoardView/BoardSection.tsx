@@ -155,13 +155,13 @@ export default function BoardSection({
       {/* Completed Progress */}
       {completedCount > 0 && (
         <div className="mb-2">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
             <span>{completedCount}/{tasks.length} completed</span>
             <span>{Math.round((completedCount / tasks.length) * 100)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1">
+          <div className="w-full bg-muted rounded-full h-1">
             <div
-              className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+              className="bg-green-500 h-1 rounded-full transition-all duration-300"
               style={{ width: `${(completedCount / tasks.length) * 100}%` }}
             />
           </div>

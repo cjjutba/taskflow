@@ -1,15 +1,12 @@
 import React from 'react';
-import { Settings, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftOpen } from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
 import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 import NotificationDropdown from './NotificationDropdown';
+import { BreadcrumbNavigation, CompactBreadcrumb } from './Header/BreadcrumbNavigation';
+import { HeaderSearchBar } from './Header/HeaderSearchBar';
+import { PomodoroTimer } from './Header/PomodoroTimer';
+import { ThemeToggle } from './Header/ThemeToggle';
 
 export default function Header() {
   const { state, dispatch } = useTask();
@@ -23,24 +20,54 @@ export default function Header() {
 
   return (
     <header
-      className="bg-background border-b border-border flex-shrink-0 w-full"
+      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border flex-shrink-0 w-full sticky top-0 z-40"
       style={{ height: 'var(--header-height)' }}
     >
-      <div className="flex items-center justify-end h-full px-4 gap-2 w-full min-w-0">
-        {/* Mobile Menu Toggle - Only show on mobile when sidebar is closed */}
-        {!state.ui.sidebarOpen && (
+      <div className="flex items-center h-full px-4 gap-4 w-full min-w-0">
+        {/* Left side - Mobile menu toggle + Breadcrumb */}
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          {/* Mobile Menu Toggle - Always show hamburger */}
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden p-2 mr-auto"
+            className="h-9 w-9 p-0 flex-shrink-0"
             onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
           >
-            <PanelLeftOpen className="w-5 h-5" />
+            <PanelLeftOpen className="w-4 h-4" />
           </Button>
-        )}
 
-        {/* Notifications */}
-        <NotificationDropdown />
+          {/* Breadcrumb Navigation */}
+          <div className="hidden md:block min-w-0">
+            <BreadcrumbNavigation />
+          </div>
+
+          {/* Compact breadcrumb for mobile */}
+          <div className="md:hidden min-w-0">
+            <CompactBreadcrumb />
+          </div>
+        </div>
+
+        {/* Center - Search Bar */}
+        <div className="hidden sm:flex justify-center flex-1">
+          <div className="w-full max-w-md">
+            <HeaderSearchBar />
+          </div>
+        </div>
+
+        {/* Right side - Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0 flex-1 justify-end">
+          {/* Pomodoro Timer */}
+          <div className="hidden md:block">
+            <PomodoroTimer />
+          </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Notifications */}
+          <NotificationDropdown />
+        </div>
       </div>
     </header>
   );
