@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 import {
   Select,
@@ -173,6 +174,9 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           <DialogTitle className="text-base font-semibold text-foreground">
             {isEditing ? 'Edit Task' : 'Create New Task'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing ? 'Edit task details and save changes' : 'Create a new task with title, description, priority and due date'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto max-h-[calc(85vh-100px)] py-1 px-4">

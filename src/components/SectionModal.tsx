@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 
 interface SectionModalProps {
@@ -113,6 +114,9 @@ export default function SectionModal({ isOpen, onClose, editingSection }: Sectio
           <DialogTitle>
             {isEditing ? 'Edit Section' : 'Create New Section'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing ? 'Edit section name and save changes' : 'Create a new section to organize your tasks'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

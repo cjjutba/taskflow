@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useTask, Project } from '../contexts/TaskContext';
 import { Button } from './ui/button';
-import { SearchBar } from './Search/SearchBar';
+
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
 
@@ -146,15 +146,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Search Section */}
-        <div className="p-3 border-b border-border">
-          <SearchBar
-            placeholder="Search tasks..."
-            compact={true}
-            showFilters={true}
-            className="w-full"
-          />
-        </div>
+
 
         {/* Main Navigation - Scrollable */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">

@@ -51,19 +51,6 @@ export default function AnalyticsPage() {
   const { state } = useTask();
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate initial loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 900);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Show loading state
-  if (isLoading) {
-    return <PageLoading message="Loading analytics..." />;
-  }
-
   const analytics = useMemo((): AnalyticsData => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -216,6 +203,19 @@ export default function AnalyticsPage() {
       },
     };
   }, [state.tasks, state.projects]);
+
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 900);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loading state
+  if (isLoading) {
+    return <PageLoading message="Loading analytics..." />;
+  }
 
   return (
     <div className="h-full overflow-auto">

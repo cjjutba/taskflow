@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TaskProvider } from "./contexts/TaskContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
-import { SearchProvider } from "./contexts/SearchContext";
+
 import Layout from "./components/Layout";
 import { PageTransition } from "./components/ui/page-transition";
 
@@ -28,8 +28,7 @@ const App = () => (
       <BrowserRouter>
         <TaskProvider>
           <NotificationProvider>
-            <SearchProvider>
-              <Layout>
+            <Layout>
               <PageTransition>
                 <Routes>
                   <Route path="/" element={<TodayPage />} />
@@ -43,7 +42,6 @@ const App = () => (
                 </Routes>
               </PageTransition>
             </Layout>
-            </SearchProvider>
           </NotificationProvider>
         </TaskProvider>
       </BrowserRouter>
