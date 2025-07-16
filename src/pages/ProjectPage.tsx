@@ -10,6 +10,8 @@ import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { PageLoading, SectionLoading } from '../components/ui/loading-spinner';
 import { useUrlFilters } from '../hooks/useUrlFilters';
+import { useTaskHighlight } from '../hooks/useTaskHighlight';
+import { UrlService } from '../services/urlService';
 
 interface ProjectStats {
   totalTasks: number;
@@ -29,11 +31,13 @@ interface ProjectStats {
 }
 
 export default function ProjectPage() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { state } = useTask();
+  const { state, dispatch } = useTask();
   const { filters } = useUrlFilters();
+  const { highlightedTaskId, scrollToTask, showTaskNotFound } = useTaskHighlight();
   const [isLoading, setIsLoading] = useState(true);
+  const urlService = new UrlService();
 
   // Simulate initial loading
   useEffect(() => {
@@ -44,15 +48,15 @@ export default function ProjectPage() {
   }, []);
 
   const { project, projectTasks, stats, filteredTasks } = useMemo(() => {
-    // Find the project
-    const project = state.projects.find(p => p.id === projectId);
+    // Find the project by slug
+    const project = slug ? urlService.findProjectBySlug(slug, state.projects) : null;
 
     if (!project) {
       return { project: null, projectTasks: [], stats: null, filteredTasks: [] };
     }
 
     // Get all tasks for this project
-    let projectTasks = state.tasks.filter(task => task.projectId === projectId);
+    let projectTasks = state.tasks.filter(task => task.projectId === project.id);
 
     // Apply URL filters
     let filteredTasks = projectTasks;
@@ -143,7 +147,32 @@ export default function ProjectPage() {
     };
 
     return { project, projectTasks, stats, filteredTasks };
-  }, [projectId, state.projects, state.tasks, filters]);
+  }, [slug, state.projects, state.tasks, filters, urlService]);
+
+  // Validate highlighted task belongs to this page (must be before any early returns)
+  useEffect(() => {
+    if (highlightedTaskId && project && projectTasks.length > 0) {
+      const taskExists = projectTasks.find(task => task.id === highlightedTaskId);
+
+      if (taskExists) {
+        // Task belongs to this page, scroll to it
+        scrollToTask(highlightedTaskId);
+      } else {
+        // Task doesn't belong to this page
+        showTaskNotFound(highlightedTaskId, 'Project');
+      }
+    }
+  }, [highlightedTaskId, project, projectTasks, scrollToTask, showTaskNotFound]);
+
+  // Set activeView to project ID when project is found
+  useEffect(() => {
+    if (project) {
+      dispatch({
+        type: 'SET_UI',
+        payload: { key: 'activeView', value: project.id }
+      });
+    }
+  }, [project, dispatch]);
 
   // Show loading state
   if (isLoading) {
@@ -173,175 +202,6 @@ export default function ProjectPage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Project Header */}
-      <div className="flex-shrink-0 p-6 border-b border-border">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div 
-              className="w-6 h-6 rounded-full flex-shrink-0" 
-              style={{ backgroundColor: project.color }}
-            />
-            <h1 className="text-2xl font-semibold text-foreground">{project.name}</h1>
-            <Badge variant="secondary" className="ml-2">
-              {stats!.activeTasks} active
-            </Badge>
-            <Button variant="ghost" size="sm" className="ml-auto">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
-          <p className="text-muted-foreground">
-            Project overview and task management
-          </p>
-        </div>
-
-        {/* Project Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-                  <p className="text-2xl font-bold text-foreground">{stats!.totalTasks}</p>
-                </div>
-                <Folder className="w-8 h-8 text-primary/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">{stats!.completedTasks}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Due Today</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats!.dueTodayTasks}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Overdue</p>
-                  <p className="text-2xl font-bold text-red-600">{stats!.overdueTasks}</p>
-                </div>
-                <AlertTriangle className="w-8 h-8 text-red-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Progress Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Project Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Overall Completion</span>
-                    <span className="text-sm text-muted-foreground">
-                      {stats!.completedTasks} of {stats!.totalTasks}
-                    </span>
-                  </div>
-                  <Progress value={stats!.completionRate} className="h-2" />
-                  <div className="text-right text-sm text-muted-foreground mt-1">
-                    {stats!.completionRate}%
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Priority Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="text-sm">High Priority</span>
-                  </div>
-                  <span className="font-medium">{stats!.highPriorityTasks}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm">Medium Priority</span>
-                  </div>
-                  <span className="font-medium">{stats!.mediumPriorityTasks}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-sm">Low Priority</span>
-                  </div>
-                  <span className="font-medium">{stats!.lowPriorityTasks}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Completion</p>
-                  <p className="font-medium">{stats!.averageCompletionDays} days</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <BarChart3 className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Recent Activity</p>
-                  <p className="font-medium">
-                    +{stats!.recentActivity.created} created, {stats!.recentActivity.completed} completed
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Success Rate</p>
-                  <p className="font-medium">{stats!.completionRate}% completed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
 
       {/* Project Tasks */}
       <div className="flex-1 overflow-hidden">

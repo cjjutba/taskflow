@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { PageLoading, SectionLoading } from '../components/ui/loading-spinner';
 import { useUrlFilters } from '../hooks/useUrlFilters';
+import { useTaskHighlight } from '../hooks/useTaskHighlight';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ interface CompletedStats {
 export default function CompletedPage() {
   const { state, dispatch } = useTask();
   const { filters: urlFilters } = useUrlFilters();
+  const { highlightedTaskId, scrollToTask, showTaskNotFound } = useTaskHighlight();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -178,6 +180,21 @@ export default function CompletedPage() {
     return { completedTasks, filteredTasks, stats, urlFilteredTasks };
   }, [state.tasks, state.projects, filters, urlFilters]);
 
+  // Validate highlighted task belongs to this page
+  useEffect(() => {
+    if (highlightedTaskId) {
+      const taskExists = completedTasks.find(task => task.id === highlightedTaskId);
+
+      if (taskExists) {
+        // Task belongs to this page, scroll to it
+        scrollToTask(highlightedTaskId);
+      } else {
+        // Task doesn't belong to this page
+        showTaskNotFound(highlightedTaskId, 'Completed');
+      }
+    }
+  }, [highlightedTaskId, completedTasks, scrollToTask, showTaskNotFound]);
+
   // Show loading state
   if (isLoading) {
     return <PageLoading message="Loading completed tasks..." />;
@@ -229,177 +246,6 @@ export default function CompletedPage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Completed Tasks Overview */}
-      <div className="flex-shrink-0 p-6 border-b border-border">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <h1 className="text-2xl font-semibold text-foreground">Completed Tasks</h1>
-            <Badge variant="secondary" className="ml-2">
-              {stats.totalCompleted} completed
-            </Badge>
-          </div>
-          <p className="text-muted-foreground">
-            Review your accomplishments and manage completed tasks
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.totalCompleted}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Today</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.completedToday}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">This Week</p>
-                  <p className="text-2xl font-bold text-purple-600">{stats.completedThisWeek}</p>
-                </div>
-                <BarChart3 className="w-8 h-8 text-purple-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg. Days</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.averageCompletionTime}</p>
-                </div>
-                <Filter className="w-8 h-8 text-orange-600/60" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters and Bulk Actions */}
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <Input
-              placeholder="Search completed tasks..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="w-64"
-            />
-
-            <Select 
-              value={filters.dateRange} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, dateRange: value }))}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={filters.project} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, project: value }))}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All Projects" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {state.projects.map(project => (
-                  <SelectItem key={project.id} value={project.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: project.color }}
-                      />
-                      {project.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bulk Operations */}
-          {filteredTasks.length > 0 && (
-            <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedTasks.length === filteredTasks.length}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span className="text-sm font-medium">
-                  {selectedTasks.length > 0 
-                    ? `${selectedTasks.length} selected` 
-                    : 'Select all'
-                  }
-                </span>
-              </div>
-
-              {selectedTasks.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleBulkRestore}
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Restore
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Completed Tasks</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to permanently delete {selectedTasks.length} completed task(s)? 
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleBulkDelete}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Task List */}
       <div className="flex-1 overflow-hidden">

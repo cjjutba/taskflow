@@ -85,16 +85,19 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
   const project = task.projectId ? state.projects.find(p => p.id === task.projectId) : null;
+  const isHighlighted = state.ui.highlightedTaskId === task.id;
 
   return (
     <div
+      data-task-id={task.id}
       className={cn(
         'task-card bg-card rounded-md border shadow-sm p-1.5 cursor-pointer transition-all duration-200 group',
         'hover:shadow-md hover:border-border/60 hover:bg-muted/10',
         'touch-manipulation select-none overflow-hidden',
         task.completed ? 'opacity-75' : '',
         isOverdue ? 'border-red-200 bg-red-50/30 dark:border-red-800 dark:bg-red-950/20' : 'border-border',
-        isDragging && 'opacity-50 rotate-2 scale-105 shadow-lg'
+        isDragging && 'opacity-50 rotate-2 scale-105 shadow-lg',
+        isHighlighted && 'ring-2 ring-primary/50 border-primary/50 bg-primary/5'
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

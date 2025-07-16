@@ -1,18 +1,31 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useTask } from '../contexts/TaskContext';
 
-export function useKeyboardShortcuts() {
+export interface SearchKeyboardHandlers {
+  onSearchFocus?: () => void;
+  onSearchEscape?: () => void;
+  onSearchArrowUp?: () => void;
+  onSearchArrowDown?: () => void;
+  onSearchEnter?: () => void;
+  onSearchTab?: () => void;
+}
+
+export function useKeyboardShortcuts(searchHandlers?: SearchKeyboardHandlers) {
   const { dispatch } = useTask();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Don't trigger shortcuts when typing in inputs
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        event.target instanceof HTMLSelectElement ||
-        (event.target as HTMLElement)?.contentEditable === 'true'
-      ) {
+      const target = event.target as HTMLElement;
+      const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.contentEditable === 'true';
+      const isSearchInput = target.getAttribute('data-search-input') === 'true';
+
+      // Don't trigger general shortcuts when typing in inputs (except search input for search-specific shortcuts)
+      if (isInputFocused && !isSearchInput) {
+        // Only allow global shortcuts like Cmd+K
+        if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+          event.preventDefault();
+          searchHandlers?.onSearchFocus?.();
+        }
         return;
       }
 
@@ -49,31 +62,57 @@ export function useKeyboardShortcuts() {
         case 'k':
           if (isModifierPressed) {
             preventDefault();
-            // Focus search input
-            const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-            }
+            searchHandlers?.onSearchFocus?.();
           }
           break;
 
         case '/':
           if (!isModifierPressed) {
             preventDefault();
-            // Focus search input
-            const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-            }
+            searchHandlers?.onSearchFocus?.();
           }
           break;
 
         // Clear filters (Escape)
         case 'escape':
-          preventDefault();
-          dispatch({ type: 'CLEAR_FILTERS' });
-          // Close any open modals
-          dispatch({ type: 'CLOSE_TASK_MODAL' });
+          if (isSearchInput) {
+            preventDefault();
+            searchHandlers?.onSearchEscape?.();
+          } else {
+            preventDefault();
+            dispatch({ type: 'CLEAR_FILTERS' });
+            // Close any open modals
+            dispatch({ type: 'CLOSE_TASK_MODAL' });
+          }
+          break;
+
+        // Search navigation (only when search input is focused)
+        case 'arrowup':
+          if (isSearchInput) {
+            preventDefault();
+            searchHandlers?.onSearchArrowUp?.();
+          }
+          break;
+
+        case 'arrowdown':
+          if (isSearchInput) {
+            preventDefault();
+            searchHandlers?.onSearchArrowDown?.();
+          }
+          break;
+
+        case 'enter':
+          if (isSearchInput) {
+            preventDefault();
+            searchHandlers?.onSearchEnter?.();
+          }
+          break;
+
+        case 'tab':
+          if (isSearchInput) {
+            preventDefault();
+            searchHandlers?.onSearchTab?.();
+          }
           break;
 
         // Navigate views (1-4)
@@ -141,4 +180,9 @@ export function useKeyboardShortcutsHelp() {
   ];
 
   return shortcuts;
+}
+
+// Hook for detecting if user is on Mac (for showing correct shortcuts)
+export function useIsMac() {
+  return typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }

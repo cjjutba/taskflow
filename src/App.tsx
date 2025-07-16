@@ -38,7 +38,7 @@ const App = () => (
                     <Route path="/all-tasks" element={<AllTasksPage />} />
                     <Route path="/completed" element={<CompletedPage />} />
                     <Route path="/analytics" element={<AnalyticsPage />} />
-                    <Route path="/project/:projectId" element={<ProjectPage />} />
+                    <Route path="/project/:slug" element={<ProjectPage />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

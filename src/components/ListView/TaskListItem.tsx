@@ -21,6 +21,7 @@ interface TaskListItemProps {
 export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
   const { state, dispatch } = useTask();
   const [isHovered, setIsHovered] = useState(false);
+  const isHighlighted = state.ui.highlightedTaskId === task.id;
 
   const handleToggleComplete = () => {
     dispatch({ type: 'TOGGLE_TASK', payload: task.id });
@@ -68,12 +69,14 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
 
   return (
     <div
+      data-task-id={task.id}
       className={cn(
         'flex items-center gap-3 p-3 rounded-lg border transition-all duration-200',
         'hover:shadow-sm hover:border-border/60 hover:bg-muted/20',
         'overflow-hidden',
         task.completed ? 'bg-muted/30' : 'bg-card',
-        isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20' : 'border-border'
+        isOverdue ? 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20' : 'border-border',
+        isHighlighted && 'ring-2 ring-primary/50 border-primary/50 bg-primary/5'
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

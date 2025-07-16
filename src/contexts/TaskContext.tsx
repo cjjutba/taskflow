@@ -55,6 +55,7 @@ interface TaskState {
     taskModalOpen: boolean;
     editingTask: Task | null;
     selectedSectionId: string | null;
+    highlightedTaskId: string | null;
   };
 }
 
@@ -80,7 +81,9 @@ type TaskAction =
   | { type: 'SET_VIEW_MODE'; payload: 'list' | 'board' }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'OPEN_TASK_MODAL'; payload?: { task?: Task | null; sectionId?: string | null } }
-  | { type: 'CLOSE_TASK_MODAL' };
+  | { type: 'CLOSE_TASK_MODAL' }
+  | { type: 'HIGHLIGHT_TASK'; payload: { taskId: string } }
+  | { type: 'CLEAR_HIGHLIGHT' };
 
 const initialState: TaskState = {
   tasks: [],
@@ -102,6 +105,7 @@ const initialState: TaskState = {
     taskModalOpen: false,
     editingTask: null,
     selectedSectionId: null,
+    highlightedTaskId: null,
   },
 };
 
@@ -341,6 +345,24 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
         },
       };
 
+    case 'HIGHLIGHT_TASK':
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          highlightedTaskId: action.payload.taskId
+        },
+      };
+
+    case 'CLEAR_HIGHLIGHT':
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          highlightedTaskId: null
+        },
+      };
+
     default:
       return state;
   }
@@ -422,6 +444,30 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('taskManager.ui', JSON.stringify(state.ui));
   }, [state.ui]);
+
+  // Auto-clear task highlight after 3 seconds and scroll to highlighted task
+  useEffect(() => {
+    if (state.ui.highlightedTaskId) {
+      // Scroll to the highlighted task
+      setTimeout(() => {
+        const taskElement = document.querySelector(`[data-task-id="${state.ui.highlightedTaskId}"]`);
+        if (taskElement) {
+          taskElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 200); // Small delay to ensure page navigation is complete
+
+      // Clear highlight after 3 seconds
+      const timer = setTimeout(() => {
+        dispatch({ type: 'CLEAR_HIGHLIGHT' });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [state.ui.highlightedTaskId]);
 
   return (
     <TaskContext.Provider value={{ state, dispatch }}>

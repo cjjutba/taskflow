@@ -50,29 +50,55 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   useEffect(() => {
     if (isOpen) {
       if (task) {
+        // Safely handle date conversion
+        const formatDate = (date: Date | string | null): string => {
+          if (!date) return '';
+          try {
+            const dateObj = date instanceof Date ? date : new Date(date);
+            return dateObj.toISOString().split('T')[0];
+          } catch (error) {
+            console.warn('Invalid date format:', date);
+            return '';
+          }
+        };
+
         setFormData({
           title: task.title,
           description: task.description,
           priority: task.priority,
-          dueDate: task.dueDate ? task.dueDate.toISOString().split('T')[0] : '',
+          dueDate: formatDate(task.dueDate),
           projectId: task.projectId || '',
           sectionId: task.sectionId || '',
         });
       } else {
         // Set default values for new task
         const today = new Date().toISOString().split('T')[0];
+
+        // Determine default project ID
+        let defaultProjectId = state.filters.project || '';
+
+        // If activeView is a project ID (not a standard view), use it as default project
+        const standardViews = ['today', 'inbox', 'all', 'completed', 'analytics'];
+        if (!standardViews.includes(state.ui.activeView)) {
+          // Check if activeView matches a project ID
+          const projectExists = state.projects.find(p => p.id === state.ui.activeView);
+          if (projectExists) {
+            defaultProjectId = state.ui.activeView;
+          }
+        }
+
         setFormData({
           title: '',
           description: '',
           priority: 'medium',
           dueDate: today,
-          projectId: state.filters.project || '',
+          projectId: defaultProjectId,
           sectionId: state.ui.selectedSectionId || '',
         });
       }
       setErrors({});
     }
-  }, [task, isOpen, state.filters.project, state.ui.selectedSectionId]);
+  }, [task, isOpen, state.filters.project, state.ui.selectedSectionId, state.ui.activeView, state.projects]);
 
   const validateForm = (): boolean => {
     const newErrors: {title?: string; dueDate?: string} = {};

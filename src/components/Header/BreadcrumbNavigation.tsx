@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { useTask } from '../../contexts/TaskContext';
 import { cn } from '../../lib/utils';
+import { UrlService } from '../../services/urlService';
 
 interface BreadcrumbItem {
   label: string;
@@ -14,6 +15,7 @@ export function BreadcrumbNavigation() {
   const location = useLocation();
   const params = useParams();
   const { state } = useTask();
+  const urlService = new UrlService();
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const path = location.pathname;
@@ -73,15 +75,15 @@ export function BreadcrumbNavigation() {
       default:
         // Handle project pages
         if (path.startsWith('/project/')) {
-          const projectId = params.projectId;
-          const project = state.projects.find(p => p.id === projectId);
-          
+          const slug = params.slug;
+          const project = slug ? urlService.findProjectBySlug(slug, state.projects) : null;
+
           breadcrumbs.push({
             label: 'Projects',
             path: '/projects', // Future projects listing page
             isActive: false
           });
-          
+
           breadcrumbs.push({
             label: project?.name || 'Project',
             path: path,

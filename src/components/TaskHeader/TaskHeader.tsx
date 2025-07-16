@@ -144,7 +144,7 @@ export default function TaskHeader({
               <ChevronDown className="w-3 h-3 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
+          <DropdownMenuContent align="end" className="w-48 bg-background border-border shadow-lg">
             <DropdownMenuItem onClick={() => onSortChange('sortBy', 'dueDate')}>
               Due Date
             </DropdownMenuItem>

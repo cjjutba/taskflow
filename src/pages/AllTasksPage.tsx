@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { PageLoading, SectionLoading } from '../components/ui/loading-spinner';
 import { useUrlFilters } from '../hooks/useUrlFilters';
+import { useTaskHighlight } from '../hooks/useTaskHighlight';
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ interface AllTasksStats {
 export default function AllTasksPage() {
   const { state, dispatch } = useTask();
   const { filters, updateFilter } = useUrlFilters();
+  const { highlightedTaskId, scrollToTask, showTaskNotFound } = useTaskHighlight();
   const [activeTab, setActiveTab] = useState('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isLoading, setIsLoading] = useState(true);
@@ -167,6 +169,21 @@ export default function AllTasksPage() {
     return { allActiveTasks, filteredTasks, stats, urlFilteredTasks };
   }, [state.tasks, state.projects, activeTab, customFilters, dateRange, filters]);
 
+  // Validate highlighted task belongs to this page
+  useEffect(() => {
+    if (highlightedTaskId) {
+      const taskExists = allActiveTasks.find(task => task.id === highlightedTaskId);
+
+      if (taskExists) {
+        // Task belongs to this page, scroll to it
+        scrollToTask(highlightedTaskId);
+      } else {
+        // Task doesn't belong to this page
+        showTaskNotFound(highlightedTaskId, 'All Tasks');
+      }
+    }
+  }, [highlightedTaskId, allActiveTasks, scrollToTask, showTaskNotFound]);
+
   // Show loading state
   if (isLoading) {
     return <PageLoading message="Loading all tasks..." />;
@@ -188,155 +205,6 @@ export default function AllTasksPage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* All Tasks Overview */}
-      <div className="flex-shrink-0 p-6 border-b border-border">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <CheckSquare className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-semibold text-foreground">All Tasks</h1>
-            <Badge variant="secondary" className="ml-2">
-              {stats.totalActive} active
-            </Badge>
-          </div>
-          <p className="text-muted-foreground">
-            Comprehensive view of all your active tasks
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">{stats.totalActive}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-red-600">{stats.overdue}</p>
-                <p className="text-xs text-muted-foreground">Overdue</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-blue-600">{stats.dueToday}</p>
-                <p className="text-xs text-muted-foreground">Today</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-green-600">{stats.dueTomorrow}</p>
-                <p className="text-xs text-muted-foreground">Tomorrow</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-red-500">{stats.highPriority}</p>
-                <p className="text-xs text-muted-foreground">High</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-yellow-500">{stats.mediumPriority}</p>
-                <p className="text-xs text-muted-foreground">Medium</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-green-500">{stats.lowPriority}</p>
-                <p className="text-xs text-muted-foreground">Low</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="text-center">
-                <p className="text-lg font-bold text-muted-foreground">{stats.noDueDate}</p>
-                <p className="text-xs text-muted-foreground">No Date</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Advanced Filters */}
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <Input
-              placeholder="Search tasks..."
-              value={customFilters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-64"
-            />
-
-            <Select value={customFilters.project} onValueChange={(value) => handleFilterChange('project', value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All Projects" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {state.projects.map(project => (
-                  <SelectItem key={project.id} value={project.id}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: project.color }}
-                      />
-                      {project.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={customFilters.priority} onValueChange={(value) => handleFilterChange('priority', value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline" onClick={clearFilters} size="sm">
-              Clear Filters
-            </Button>
-          </div>
-
-          {/* Tab Navigation */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="all">All ({stats.totalActive})</TabsTrigger>
-              <TabsTrigger value="overdue">Overdue ({stats.overdue})</TabsTrigger>
-              <TabsTrigger value="today">Today ({stats.dueToday})</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming ({stats.dueTomorrow})</TabsTrigger>
-              <TabsTrigger value="no-date">No Date ({stats.noDueDate})</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </div>
 
       {/* Task List */}
       <div className="flex-1 overflow-hidden">

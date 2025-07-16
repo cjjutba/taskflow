@@ -61,7 +61,10 @@ export default function ListSection({
   };
 
   const handleAddTask = () => {
-    dispatch({ type: 'OPEN_TASK_MODAL' });
+    dispatch({
+      type: 'OPEN_TASK_MODAL',
+      payload: { sectionId: isUnsorted ? null : section.id }
+    });
   };
 
   const completedCount = tasks.filter(task => task.completed).length;

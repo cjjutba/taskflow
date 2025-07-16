@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Target, Clock, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
+import {
+  BarChart3, TrendingUp, Target, Clock, Calendar, CheckCircle, AlertTriangle,
+  Package, ArrowRight, Filter, Folder, CheckSquare
+} from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
@@ -45,6 +48,40 @@ interface AnalyticsData {
       completed: number;
     }>;
   };
+  // New comprehensive analytics
+  todayAnalytics: {
+    totalTasks: number;
+    completedTasks: number;
+    overdueTasks: number;
+    highPriorityTasks: number;
+    mediumPriorityTasks: number;
+    lowPriorityTasks: number;
+    completionRate: number;
+  };
+  inboxAnalytics: {
+    totalUnassigned: number;
+    recentTasks: number;
+    urgentTasks: number;
+    oldestTaskDays: number;
+  };
+  allTasksAnalytics: {
+    totalActive: number;
+    highPriority: number;
+    mediumPriority: number;
+    lowPriority: number;
+    overdue: number;
+    dueToday: number;
+    dueTomorrow: number;
+    noDueDate: number;
+  };
+  completedAnalytics: {
+    totalCompleted: number;
+    completedToday: number;
+    completedThisWeek: number;
+    completedThisMonth: number;
+    averageCompletionTime: number;
+    priorityBreakdown: { high: number; medium: number; low: number };
+  };
 }
 
 export default function AnalyticsPage() {
@@ -54,6 +91,10 @@ export default function AnalyticsPage() {
   const analytics = useMemo((): AnalyticsData => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfterTomorrow = new Date(tomorrow);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
     const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
     const monthAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
@@ -62,7 +103,7 @@ export default function AnalyticsPage() {
     const completedTasks = state.tasks.filter(task => task.completed).length;
     const activeTasks = totalTasks - completedTasks;
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const overdueTasks = state.tasks.filter(task => 
+    const overdueTasks = state.tasks.filter(task =>
       !task.completed && task.dueDate && task.dueDate < today
     ).length;
 
@@ -179,6 +220,96 @@ export default function AnalyticsPage() {
       });
     }
 
+    // TODAY ANALYTICS
+    const todayTasks = state.tasks.filter(task =>
+      task.dueDate &&
+      task.dueDate >= today &&
+      task.dueDate < tomorrow
+    );
+    const todayOverdueTasks = state.tasks.filter(task =>
+      !task.completed &&
+      task.dueDate &&
+      task.dueDate < today
+    );
+    const activeTodayTasks = todayTasks.filter(task => !task.completed);
+
+    const todayAnalytics = {
+      totalTasks: todayTasks.length,
+      completedTasks: todayTasks.filter(task => task.completed).length,
+      overdueTasks: todayOverdueTasks.length,
+      highPriorityTasks: activeTodayTasks.filter(task => task.priority === 'high').length,
+      mediumPriorityTasks: activeTodayTasks.filter(task => task.priority === 'medium').length,
+      lowPriorityTasks: activeTodayTasks.filter(task => task.priority === 'low').length,
+      completionRate: todayTasks.length > 0 ? Math.round((todayTasks.filter(task => task.completed).length / todayTasks.length) * 100) : 0,
+    };
+
+    // INBOX ANALYTICS
+    const inboxTasks = state.tasks.filter(task => !task.projectId && !task.completed);
+    const recentTasks = inboxTasks.filter(task =>
+      task.createdAt >= new Date(now.getTime() - (24 * 60 * 60 * 1000))
+    ).length;
+    const urgentTasks = inboxTasks.filter(task =>
+      task.priority === 'high' ||
+      (task.dueDate && task.dueDate <= new Date(now.getTime() + (24 * 60 * 60 * 1000)))
+    ).length;
+    const oldestTask = inboxTasks.reduce((oldest, task) =>
+      !oldest || task.createdAt < oldest.createdAt ? task : oldest
+    , null as any);
+    const oldestTaskDays = oldestTask
+      ? Math.floor((now.getTime() - oldestTask.createdAt.getTime()) / (24 * 60 * 60 * 1000))
+      : 0;
+
+    const inboxAnalytics = {
+      totalUnassigned: inboxTasks.length,
+      recentTasks,
+      urgentTasks,
+      oldestTaskDays,
+    };
+
+    // ALL TASKS ANALYTICS
+    const allActiveTasks = state.tasks.filter(task => !task.completed);
+    const allTasksAnalytics = {
+      totalActive: allActiveTasks.length,
+      highPriority: allActiveTasks.filter(task => task.priority === 'high').length,
+      mediumPriority: allActiveTasks.filter(task => task.priority === 'medium').length,
+      lowPriority: allActiveTasks.filter(task => task.priority === 'low').length,
+      overdue: allActiveTasks.filter(task =>
+        task.dueDate && task.dueDate < today
+      ).length,
+      dueToday: allActiveTasks.filter(task =>
+        task.dueDate && task.dueDate >= today && task.dueDate < tomorrow
+      ).length,
+      dueTomorrow: allActiveTasks.filter(task =>
+        task.dueDate && task.dueDate >= tomorrow && task.dueDate < dayAfterTomorrow
+      ).length,
+      noDueDate: allActiveTasks.filter(task => !task.dueDate).length,
+    };
+
+    // COMPLETED ANALYTICS
+    const completedTasksList = state.tasks.filter(task => task.completed);
+    const completedToday = completedTasksList.filter(task =>
+      task.updatedAt >= today
+    ).length;
+    const completedThisWeek = completedTasksList.filter(task =>
+      task.updatedAt >= weekAgo
+    ).length;
+    const completedThisMonth = completedTasksList.filter(task =>
+      task.updatedAt >= monthAgo
+    ).length;
+
+    const completedAnalytics = {
+      totalCompleted: completedTasksList.length,
+      completedToday,
+      completedThisWeek,
+      completedThisMonth,
+      averageCompletionTime: averageCompletionDays,
+      priorityBreakdown: {
+        high: completedTasksList.filter(task => task.priority === 'high').length,
+        medium: completedTasksList.filter(task => task.priority === 'medium').length,
+        low: completedTasksList.filter(task => task.priority === 'low').length,
+      },
+    };
+
     return {
       overview: {
         totalTasks,
@@ -201,6 +332,10 @@ export default function AnalyticsPage() {
         oldestActiveTask,
         recentActivity,
       },
+      todayAnalytics,
+      inboxAnalytics,
+      allTasksAnalytics,
+      completedAnalytics,
     };
   }, [state.tasks, state.projects]);
 
@@ -296,10 +431,13 @@ export default function AnalyticsPage() {
 
         {/* Detailed Analytics Tabs */}
         <Tabs defaultValue="productivity" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="productivity">Productivity</TabsTrigger>
+            <TabsTrigger value="today">Today</TabsTrigger>
+            <TabsTrigger value="inbox">Inbox</TabsTrigger>
+            <TabsTrigger value="all-tasks">All Tasks</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="priorities">Priorities</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
           </TabsList>
 
@@ -381,6 +519,304 @@ export default function AnalyticsPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="today" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                      <p className="text-2xl font-bold text-foreground">{analytics.todayAnalytics.totalTasks}</p>
+                    </div>
+                    <Target className="w-8 h-8 text-primary/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                      <p className="text-2xl font-bold text-green-600">{analytics.todayAnalytics.completedTasks}</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-green-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Overdue</p>
+                      <p className="text-2xl font-bold text-red-600">{analytics.todayAnalytics.overdueTasks}</p>
+                    </div>
+                    <AlertTriangle className="w-8 h-8 text-red-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Progress</p>
+                      <p className="text-2xl font-bold text-primary">{analytics.todayAnalytics.completionRate}%</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-primary/60" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Priority Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{analytics.todayAnalytics.highPriorityTasks}</div>
+                    <div className="text-sm text-muted-foreground">High Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">{analytics.todayAnalytics.mediumPriorityTasks}</div>
+                    <div className="text-sm text-muted-foreground">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{analytics.todayAnalytics.lowPriorityTasks}</div>
+                    <div className="text-sm text-muted-foreground">Low Priority</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="inbox" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Unassigned</p>
+                      <p className="text-2xl font-bold text-foreground">{analytics.inboxAnalytics.totalUnassigned}</p>
+                    </div>
+                    <Package className="w-8 h-8 text-primary/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Recent</p>
+                      <p className="text-2xl font-bold text-blue-600">{analytics.inboxAnalytics.recentTasks}</p>
+                    </div>
+                    <ArrowRight className="w-8 h-8 text-blue-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Urgent</p>
+                      <p className="text-2xl font-bold text-red-600">{analytics.inboxAnalytics.urgentTasks}</p>
+                    </div>
+                    <Filter className="w-8 h-8 text-red-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Oldest</p>
+                      <p className="text-2xl font-bold text-orange-600">{analytics.inboxAnalytics.oldestTaskDays}d</p>
+                    </div>
+                    <CheckSquare className="w-8 h-8 text-orange-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="all-tasks" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Active</p>
+                      <p className="text-2xl font-bold text-foreground">{analytics.allTasksAnalytics.totalActive}</p>
+                    </div>
+                    <Target className="w-8 h-8 text-primary/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Overdue</p>
+                      <p className="text-2xl font-bold text-red-600">{analytics.allTasksAnalytics.overdue}</p>
+                    </div>
+                    <AlertTriangle className="w-8 h-8 text-red-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Due Today</p>
+                      <p className="text-2xl font-bold text-blue-600">{analytics.allTasksAnalytics.dueToday}</p>
+                    </div>
+                    <Calendar className="w-8 h-8 text-blue-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">No Due Date</p>
+                      <p className="text-2xl font-bold text-gray-600">{analytics.allTasksAnalytics.noDueDate}</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-gray-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Priority Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">High Priority</span>
+                      <span className="font-medium text-red-600">{analytics.allTasksAnalytics.highPriority}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Medium Priority</span>
+                      <span className="font-medium text-yellow-600">{analytics.allTasksAnalytics.mediumPriority}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Low Priority</span>
+                      <span className="font-medium text-green-600">{analytics.allTasksAnalytics.lowPriority}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Due Date Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Due Tomorrow</span>
+                      <span className="font-medium text-blue-600">{analytics.allTasksAnalytics.dueTomorrow}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Due Today</span>
+                      <span className="font-medium text-orange-600">{analytics.allTasksAnalytics.dueToday}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Overdue</span>
+                      <span className="font-medium text-red-600">{analytics.allTasksAnalytics.overdue}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold text-green-600">{analytics.completedAnalytics.totalCompleted}</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-green-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Today</p>
+                      <p className="text-2xl font-bold text-blue-600">{analytics.completedAnalytics.completedToday}</p>
+                    </div>
+                    <Calendar className="w-8 h-8 text-blue-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">This Week</p>
+                      <p className="text-2xl font-bold text-purple-600">{analytics.completedAnalytics.completedThisWeek}</p>
+                    </div>
+                    <BarChart3 className="w-8 h-8 text-purple-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Avg. Days</p>
+                      <p className="text-2xl font-bold text-orange-600">{analytics.completedAnalytics.averageCompletionTime}</p>
+                    </div>
+                    <Filter className="w-8 h-8 text-orange-600/60" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Completed Tasks by Priority</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{analytics.completedAnalytics.priorityBreakdown.high}</div>
+                    <div className="text-sm text-muted-foreground">High Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">{analytics.completedAnalytics.priorityBreakdown.medium}</div>
+                    <div className="text-sm text-muted-foreground">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{analytics.completedAnalytics.priorityBreakdown.low}</div>
+                    <div className="text-sm text-muted-foreground">Low Priority</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="projects" className="space-y-4">
             <div className="grid gap-4">
               {Object.values(analytics.projects).map((project) => (
@@ -406,36 +842,6 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="priorities" className="space-y-4">
-            <div className="grid gap-4">
-              {Object.entries(analytics.priorities).map(([priority, data]) => {
-                const completionRate = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
-                const color = priority === 'high' ? 'red' : priority === 'medium' ? 'yellow' : 'green';
-                
-                return (
-                  <Card key={priority}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full bg-${color}-500`} />
-                          <span className="font-medium capitalize">{priority} Priority</span>
-                        </div>
-                        <Badge variant="secondary">
-                          {data.completed}/{data.total}
-                        </Badge>
-                      </div>
-                      <Progress value={completionRate} className="h-2" />
-                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                        <span>{completionRate}% complete</span>
-                        <span>{data.total - data.completed} remaining</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
             </div>
           </TabsContent>
 

@@ -222,7 +222,7 @@ export function PomodoroTimer() {
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-64 bg-background border-border shadow-lg">
         <div className="p-3">
           {/* Timer Display */}
           <div className="text-center mb-4">

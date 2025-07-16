@@ -14,6 +14,7 @@ import { Button } from './ui/button';
 
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
+import { UrlService } from '../services/urlService';
 
 const navigationItems = [
   { id: 'today', label: 'Today', icon: Calendar, path: '/' },
@@ -31,6 +32,7 @@ export default function Sidebar() {
   const location = useLocation();
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const urlService = new UrlService();
   
   const getTaskCount = (viewId: string) => {
     const now = new Date();
@@ -97,7 +99,7 @@ export default function Sidebar() {
 
       {/* Seamless Toggle Button - Transitions from inside sidebar to outside */}
       <div
-        className="fixed z-50 hidden lg:block"
+        className="fixed z-50"
         style={{
           top: '16px',
           left: state.ui.sidebarOpen ? 'calc(var(--sidebar-width) - 48px)' : '16px',
@@ -135,8 +137,15 @@ export default function Sidebar() {
           <div className="flex items-center">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs">T</span>
+              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center relative">
+                {/* Task Flow Icon - Three connected dots representing workflow */}
+                <div className="flex items-center gap-0.5">
+                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
+                  <div className="w-2 h-0.5 bg-primary-foreground/60"></div>
+                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
+                  <div className="w-2 h-0.5 bg-primary-foreground/60"></div>
+                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
+                </div>
               </div>
               <div>
                 <h1 className="text-base font-semibold text-foreground">TaskFlow</h1>
@@ -199,12 +208,13 @@ export default function Sidebar() {
                       task => task.projectId === project.id && !task.completed
                     ).length;
 
-                    const isProjectActive = location.pathname === `/project/${project.id}`;
+                    const projectUrl = urlService.getProjectUrl(project);
+                    const isProjectActive = location.pathname === projectUrl;
 
                     return (
                       <div key={project.id} className="group relative">
                         <Link
-                          to={`/project/${project.id}`}
+                          to={projectUrl}
                           className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
                             isProjectActive
                               ? 'bg-primary/10 text-primary border border-primary/20'
@@ -244,7 +254,7 @@ export default function Sidebar() {
         </div>
 
         {/* Bottom Navigation - Fixed */}
-        <div className="p-3 space-y-1 border-t border-border bg-surface">
+        <div className="p-3 space-y-1 border-t border-border">
           {bottomItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = isActiveRoute(item.path);

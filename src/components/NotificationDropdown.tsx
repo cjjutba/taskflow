@@ -62,7 +62,7 @@ export default function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 bg-white border border-border shadow-lg">
+      <DropdownMenuContent align="end" className="w-80 bg-background border-border shadow-lg">
         <div className="p-3 border-b border-border">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-sm">Notifications</h4>

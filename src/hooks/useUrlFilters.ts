@@ -9,6 +9,7 @@ export interface FilterState {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   view?: 'list' | 'board';
+  task?: string; // Task ID for highlighting specific tasks
 }
 
 export function useUrlFilters() {
@@ -23,6 +24,7 @@ export function useUrlFilters() {
       sortBy: searchParams.get('sortBy') || undefined,
       sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || undefined,
       view: (searchParams.get('view') as 'list' | 'board') || undefined,
+      task: searchParams.get('task') || undefined,
     };
   }, [searchParams]);
 
