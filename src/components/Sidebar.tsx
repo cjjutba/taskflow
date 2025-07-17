@@ -1,35 +1,38 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Calendar,
   CheckSquare,
   Inbox,
-  FolderOpen,
   BarChart3,
-  Settings,
-  Plus
+  Plus,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
-import { useTask } from '../contexts/TaskContext';
+import { useTask, Project } from '../contexts/TaskContext';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+
 import ProjectModal from './ProjectModal';
 import { ProjectActions } from './ProjectActions';
+import { UrlService } from '../services/urlService';
 
 const navigationItems = [
-  { id: 'today', label: 'Today', icon: Calendar },
-  { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'all', label: 'All Tasks', icon: CheckSquare },
-  { id: 'completed', label: 'Completed', icon: CheckSquare },
+  { id: 'today', label: 'Today', icon: Calendar, path: '/' },
+  { id: 'inbox', label: 'Inbox', icon: Inbox, path: '/inbox' },
+  { id: 'all', label: 'All Tasks', icon: CheckSquare, path: '/all-tasks' },
+  { id: 'completed', label: 'Completed', icon: CheckSquare, path: '/completed' },
 ];
 
 const bottomItems = [
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/analytics' },
 ];
 
 export default function Sidebar() {
   const { state, dispatch } = useTask();
+  const location = useLocation();
   const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<any>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const urlService = new UrlService();
   
   const getTaskCount = (viewId: string) => {
     const now = new Date();
@@ -56,19 +59,25 @@ export default function Sidebar() {
     }
   };
 
-  const setActiveView = (viewId: string) => {
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const toggleSidebar = () => {
     dispatch({
       type: 'SET_UI',
-      payload: { key: 'activeView', value: viewId }
+      payload: { key: 'sidebarOpen', value: !state.ui.sidebarOpen }
     });
   };
+
+
 
   const openProjectModal = () => {
     setEditingProject(null);
     setProjectModalOpen(true);
   };
 
-  const editProject = (project: any) => {
+  const editProject = (project: Project) => {
     setEditingProject(project);
     setProjectModalOpen(true);
   };
@@ -79,134 +88,189 @@ export default function Sidebar() {
   };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 z-40 bg-surface border-r border-border transition-all duration-300 ${
-        state.ui.sidebarOpen
-          ? 'w-[var(--sidebar-width)] translate-x-0'
-          : 'w-[var(--sidebar-width)] lg:w-16 -translate-x-full lg:translate-x-0'
-      }`}
-      style={{
-        top: 'var(--header-height)',
-        height: 'calc(100vh - var(--header-height))'
-      }}
-    >
+    <>
+      {/* Mobile Overlay */}
+      {state.ui.sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Seamless Toggle Button - Transitions from inside sidebar to outside */}
+      <div
+        className="fixed z-50"
+        style={{
+          top: '16px',
+          left: state.ui.sidebarOpen ? 'calc(var(--sidebar-width) - 48px)' : '16px',
+          transition: 'all 300ms ease-in-out',
+        }}
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className={`p-1.5 w-8 h-8 transition-all duration-200 ${
+            state.ui.sidebarOpen
+              ? 'hover:bg-muted/50'
+              : 'bg-background border border-border shadow-md hover:bg-muted'
+          }`}
+        >
+          {state.ui.sidebarOpen ? (
+            <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
+          )}
+        </Button>
+      </div>
+
+      <aside
+        className="fixed left-0 top-0 z-40 bg-background border-r border-border h-screen transition-transform duration-300 ease-in-out"
+        style={{
+          width: 'var(--sidebar-width)',
+          transform: state.ui.sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
+        }}
+      >
       <div className="flex flex-col h-full overflow-hidden">
+        {/* Header Section - Logo */}
+        <div className="p-3 border-b border-border">
+          <div className="flex items-center">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 flex items-center justify-center">
+                <img
+                  src="/logo/checklist.png"
+                  alt="TaskFlow Logo"
+                  className="w-7 h-7 object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-foreground">TaskFlow</h1>
+                <p className="text-xs text-muted-foreground">Task Management</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
         {/* Main Navigation - Scrollable */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <nav className="p-4 space-y-2">
+          <nav className="p-3 space-y-1">
           {navigationItems.map((item) => {
             const IconComponent = item.icon;
             const count = getTaskCount(item.id);
-            const isActive = state.ui.activeView === item.id;
-            
+            const isActive = isActiveRoute(item.path);
+
             return (
-              <Button
+              <Link
                 key={item.id}
-                variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-3 h-auto ${
-                  !state.ui.sidebarOpen ? 'px-3 justify-center lg:justify-start' : ''
-                } ${isActive ? 'bg-primary/10 text-primary border border-primary/20' : ''}`}
-                onClick={() => setActiveView(item.id)}
+                to={item.path}
+                className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                  isActive
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <IconComponent className={`w-5 h-5 ${state.ui.sidebarOpen ? 'mr-3' : 'lg:mr-3'}`} />
-                <span className={`flex-1 text-left ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}>
+                <IconComponent className="w-4 h-4 mr-2.5" />
+                <span className="flex-1 text-left">
                   {item.label}
                 </span>
                 {count > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className={`ml-auto text-xs bg-muted-foreground/10 ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}
-                  >
+                  <span className="ml-auto text-xs text-muted-foreground font-medium">
                     {count}
-                  </Badge>
+                  </span>
                 )}
-              </Button>
+              </Link>
             );
           })}
           
             {/* Projects Section */}
-            {state.ui.sidebarOpen && (
-              <div className="pt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">Projects</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-6 w-6 hover:bg-muted"
-                    onClick={openProjectModal}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
+            <div className="pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Projects</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-5 w-5 hover:bg-muted"
+                  onClick={openProjectModal}
+                >
+                  <Plus className="w-3.5 h-3.5 text-xs text-muted-foreground font-medium" />
+                </Button>
+              </div>
 
-                <div className="space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
+                <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar">
                   {state.projects.map((project) => {
                     const projectTaskCount = state.tasks.filter(
                       task => task.projectId === project.id && !task.completed
                     ).length;
 
+                    const projectUrl = urlService.getProjectUrl(project);
+                    const isProjectActive = location.pathname === projectUrl;
+
                     return (
                       <div key={project.id} className="group relative">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start p-3 h-auto pr-8"
-                          onClick={() => {
-                            dispatch({
-                              type: 'SET_FILTER',
-                              payload: { key: 'project', value: project.id }
-                            });
-                            setActiveView('all');
-                          }}
+                        <Link
+                          to={projectUrl}
+                          className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                            isProjectActive
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
                         >
                           <div
-                            className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
+                            className="w-2.5 h-2.5 rounded-full mr-2.5 flex-shrink-0"
                             style={{ backgroundColor: project.color }}
                           />
                           <span className="flex-1 text-left truncate">{project.name}</span>
-                          {projectTaskCount > 0 && (
-                            <Badge
-                              variant="secondary"
-                              className="ml-2 text-xs bg-muted-foreground/10 flex-shrink-0"
-                            >
-                              {projectTaskCount}
-                            </Badge>
-                          )}
-                        </Button>
-                        <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
-                          <ProjectActions
-                            project={project}
-                            onEdit={editProject}
-                          />
-                        </div>
+
+                          {/* Right side content - properly aligned */}
+                          <div className="ml-auto flex items-center relative">
+                            {/* Number counter - matches navigation items alignment */}
+                            {projectTaskCount > 0 && (
+                              <span className="text-xs text-muted-foreground font-medium group-hover:opacity-0 transition-opacity duration-200">
+                                {projectTaskCount}
+                              </span>
+                            )}
+
+                            {/* 3-dot menu - positioned in same location as counter */}
+                            <div className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <ProjectActions
+                                project={project}
+                                onEdit={editProject}
+                              />
+                            </div>
+                          </div>
+                        </Link>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            )}
           </nav>
         </div>
 
         {/* Bottom Navigation - Fixed */}
-        <div className="p-4 space-y-2 border-t border-border bg-surface">
+        <div className="p-3 space-y-1 border-t border-border">
           {bottomItems.map((item) => {
             const IconComponent = item.icon;
-            const isActive = state.ui.activeView === item.id;
+            const isActive = isActiveRoute(item.path);
 
             return (
-              <Button
+              <Link
                 key={item.id}
-                variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start p-3 h-auto ${
-                  !state.ui.sidebarOpen ? 'px-3 justify-center lg:justify-start' : ''
-                } ${isActive ? 'bg-primary/10 text-primary' : ''}`}
-                onClick={() => setActiveView(item.id)}
+                to={item.path}
+                className={`flex items-center w-full justify-start p-2.5 h-auto rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <IconComponent className={`w-5 h-5 ${state.ui.sidebarOpen ? 'mr-3' : 'lg:mr-3'}`} />
-                <span className={`flex-1 text-left ${state.ui.sidebarOpen ? 'block' : 'hidden lg:block'}`}>
+                <IconComponent className="w-4 h-4 mr-2.5" />
+                <span className="flex-1 text-left">
                   {item.label}
                 </span>
-              </Button>
+              </Link>
             );
           })}
         </div>
@@ -219,5 +283,6 @@ export default function Sidebar() {
         project={editingProject}
       />
     </aside>
+    </>
   );
 }

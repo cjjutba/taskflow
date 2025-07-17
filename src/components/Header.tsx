@@ -1,173 +1,111 @@
 import React, { useState } from 'react';
-import { Search, Menu, Settings, X } from 'lucide-react';
+import { Search, Menu } from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
+import { NotificationDropdown } from './NotificationDropdown';
+import { BreadcrumbNavigation, CompactBreadcrumb } from './Header/BreadcrumbNavigation';
+import { HeaderSearchBar } from './Header/HeaderSearchBar';
+import { PomodoroTimer } from './Header/PomodoroTimer';
+import { ThemeToggle } from './Header/ThemeToggle';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import NotificationDropdown from './NotificationDropdown';
+import { cn } from '../lib/utils';
 
 export default function Header() {
-  const { state, dispatch } = useTask();
+  const { state } = useTask();
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
-  const toggleSidebar = () => {
-    dispatch({
-      type: 'SET_UI',
-      payload: { key: 'sidebarOpen', value: !state.ui.sidebarOpen }
-    });
-  };
-
-  const handleSearch = (value: string) => {
-    dispatch({
-      type: 'SET_FILTER',
-      payload: { key: 'search', value }
-    });
-  };
-
-  const clearSearch = () => {
-    handleSearch('');
-    setShowMobileSearch(false);
-  };
-
   return (
-    <>
-      <header 
-        className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border"
-        style={{ height: 'var(--header-height)' }}
-      >
-        <div className="flex items-center justify-between h-full px-4 lg:px-6">
-          {/* Left Side */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="p-2"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-semibold text-sm">T</span>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="font-semibold text-lg">TaskFlow</h1>
-                <p className="text-xs text-muted-foreground hidden lg:block">Task Management</p>
-              </div>
-            </div>
+    <header
+      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border flex-shrink-0 w-full sticky top-0 z-40"
+      style={{ height: 'var(--header-height)' }}
+    >
+      {/* Main Header Row */}
+      <div className="flex items-center h-full px-4 gap-2 sm:gap-4 w-full min-w-0">
+        {/* Left side - Breadcrumb */}
+        <div className={`flex items-center gap-2 sm:gap-4 flex-1 min-w-0 transition-all duration-300 ${
+          !state.ui.sidebarOpen ? 'ml-12' : 'ml-0'
+        }`}>
+          {/* Breadcrumb Navigation */}
+          <div className="hidden md:block min-w-0">
+            <BreadcrumbNavigation />
           </div>
 
-          {/* Center - Search (Desktop) */}
-          <div className="flex-1 max-w-md mx-4 hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                value={state.filters.search}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              {state.filters.search && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
-                  onClick={clearSearch}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Right Side */}
-          <div className="flex items-center gap-2">
-            {/* Mobile Search Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden p-2"
-              onClick={() => setShowMobileSearch(!showMobileSearch)}
-            >
-              <Search className="w-5 h-5" />
-            </Button>
-
-            {/* Notifications */}
-            <NotificationDropdown />
-
-            {/* Settings */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2"
-              onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'activeView', value: 'settings' } })}
-            >
-              <Settings className="w-5 h-5" />
-            </Button>
-
-            {/* Profile */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-8 h-8 p-0 rounded-full bg-muted">
-                  <span className="text-sm font-medium">JD</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
-                <DropdownMenuItem onClick={() => dispatch({ type: 'SET_UI', payload: { key: 'activeView', value: 'settings' } })}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Compact breadcrumb for mobile */}
+          <div className="md:hidden min-w-0">
+            <CompactBreadcrumb />
           </div>
         </div>
 
-        {/* Mobile Search Dropdown */}
-        {showMobileSearch && (
-          <div className="md:hidden px-4 pb-4 border-b border-border bg-background">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                className="pl-10 pr-8 bg-white border border-border shadow-sm rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                value={state.filters.search}
-                onChange={(e) => handleSearch(e.target.value)}
-                autoFocus
-              />
-              {state.filters.search && (
+        {/* Center - Search Bar (Desktop) */}
+        <div className="hidden sm:flex justify-center flex-1">
+          <div className="w-full max-w-md">
+            <HeaderSearchBar />
+          </div>
+        </div>
+
+        {/* Right side - Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0 flex-1 justify-end">
+          {/* Mobile Search Toggle */}
+          <div className="sm:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className={cn(
+                "h-8 w-8 p-0",
+                showMobileSearch && "bg-muted"
+              )}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Mobile Actions Menu */}
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 hover:bg-muted rounded-sm"
-                  onClick={clearSearch}
+                  className="h-8 w-8 p-0"
                 >
-                  <X className="w-3 h-3" />
+                  <Menu className="w-4 h-4" />
                 </Button>
-              )}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 bg-background border-border shadow-lg">
+                <div className="p-2">
+                  {/* Mobile Pomodoro Timer */}
+                  <div className="mb-2">
+                    <PomodoroTimer />
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
-      </header>
 
-      {/* Mobile Overlay */}
-      {state.ui.sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
-          style={{ top: 'var(--header-height)' }}
-          onClick={toggleSidebar}
-        />
+          {/* Desktop Pomodoro Timer */}
+          <div className="hidden sm:block">
+            <PomodoroTimer />
+          </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Notifications */}
+          <NotificationDropdown />
+        </div>
+      </div>
+
+      {/* Mobile Search Bar (Expandable) */}
+      {showMobileSearch && (
+        <div className="sm:hidden border-t border-border bg-background px-4 py-2">
+          <HeaderSearchBar />
+        </div>
       )}
-    </>
+    </header>
   );
 }

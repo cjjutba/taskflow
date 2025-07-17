@@ -22,8 +22,9 @@ export default function TaskCard({
   showProject = true,
   className 
 }: TaskCardProps) {
-  const { dispatch } = useTask();
+  const { state, dispatch } = useTask();
   const [isHovered, setIsHovered] = useState(false);
+  const isHighlighted = state.ui.highlightedTaskId === task.id;
 
   const toggleTask = () => {
     dispatch({ type: 'TOGGLE_TASK', payload: task.id });
@@ -40,11 +41,13 @@ export default function TaskCard({
 
   return (
     <div
+      data-task-id={task.id}
       className={cn(
         'group bg-card border border-border rounded-lg shadow-task transition-all duration-200 hover:shadow-card border-l-4',
         getPriorityBorder(task.priority),
         compact ? 'p-3' : 'p-4',
         task.completed && 'opacity-60',
+        isHighlighted && 'ring-2 ring-primary/50 border-primary/50 bg-primary/5',
         className
       )}
       onMouseEnter={() => setIsHovered(true)}

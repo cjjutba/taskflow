@@ -1,7 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Filter, SortAsc } from 'lucide-react';
+import { Plus, Filter, SortAsc, Layers } from 'lucide-react';
 import { useTask, Task } from '../contexts/TaskContext';
 import TaskCard from './TaskCard';
+import { ViewToggle } from './ViewToggle';
+import SectionModal from './SectionModal';
+import ListView from './ListView/ListView';
+import BoardView from './BoardView/BoardView';
+import TaskHeader from './TaskHeader/TaskHeader';
 
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -21,6 +26,7 @@ interface TaskListProps {
 
 export default function TaskList({ title, tasks, showAddButton = true }: TaskListProps) {
   const { state, dispatch } = useTask();
+  const [sectionModalOpen, setSectionModalOpen] = useState(false);
 
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
@@ -132,7 +138,7 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
   const totalCount = tasks.length;
 
   const handleEdit = (task: Task) => {
-    dispatch({ type: 'OPEN_TASK_MODAL', payload: task });
+    dispatch({ type: 'OPEN_TASK_MODAL', payload: { task } });
   };
 
   const getActiveFilters = () => {
@@ -170,165 +176,38 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
 
   const activeFilters = getActiveFilters();
 
+  const handleFilterChange = (type: string, value: any) => {
+    dispatch({
+      type: 'SET_FILTER',
+      payload: { key: type, value }
+    });
+  };
+
+  const handleSortChange = (type: string, value: any) => {
+    dispatch({
+      type: 'SET_FILTER',
+      payload: { key: type, value }
+    });
+  };
+
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-border">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-          <Badge variant="secondary" className="text-xs">
-            {filteredTasks.length} tasks
-          </Badge>
-          {completedCount > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {completedCount}/{totalCount} completed
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filter
-                {activeFilters.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 text-xs">
-                    {activeFilters.length}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white border border-border shadow-lg">
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'CLEAR_FILTERS'
-              })}>
-                All Tasks
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'priority', value: 'high' }
-              })}>
-                High Priority
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'status', value: 'active' }
-              })}>
-                Active Tasks
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => {
-                // Set a custom filter for due today
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-
-                dispatch({
-                  type: 'SET_FILTER',
-                  payload: {
-                    key: 'dueDate',
-                    value: { start: today, end: tomorrow }
-                  }
-                });
-              }}>
-                Due Today
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => {
-                // Set a custom filter for overdue tasks
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                dispatch({
-                  type: 'SET_FILTER',
-                  payload: {
-                    key: 'dueDate',
-                    value: { end: today, overdue: true }
-                  }
-                });
-              }}>
-                Overdue
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Sort Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                {state.filters.sortDirection === 'desc' ? (
-                  <SortAsc className="w-4 h-4 rotate-180" />
-                ) : (
-                  <SortAsc className="w-4 h-4" />
-                )}
-                Sort
-                {state.filters.sortBy && state.filters.sortBy !== 'dueDate' && (
-                  <Badge variant="secondary" className="ml-1 text-xs">
-                    {state.filters.sortBy.charAt(0).toUpperCase() + state.filters.sortBy.slice(1)}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-white border border-border shadow-lg">
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'sortBy', value: 'dueDate' }
-              })}>
-                Due Date
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'sortBy', value: 'priority' }
-              })}>
-                Priority
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'sortBy', value: 'createdAt' }
-              })}>
-                Created Date
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: { key: 'sortBy', value: 'alphabetical' }
-              })}>
-                Alphabetical
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => dispatch({
-                type: 'SET_FILTER',
-                payload: {
-                  key: 'sortDirection',
-                  value: state.filters.sortDirection === 'asc' ? 'desc' : 'asc'
-                }
-              })}>
-                {state.filters.sortDirection === 'asc' ? 'Sort Descending' : 'Sort Ascending'}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Add Task Button */}
-          {showAddButton && (
-            <Button
-              onClick={() => dispatch({ type: 'OPEN_TASK_MODAL' })}
-              className="gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Task
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="h-full flex flex-col min-w-0">
+      {/* Enhanced Header */}
+      <TaskHeader
+        title={title}
+        taskCount={filteredTasks.length}
+        completedCount={completedCount}
+        totalCount={totalCount}
+        activeFilters={activeFilters}
+        showAddButton={showAddButton}
+        onAddTask={() => dispatch({ type: 'OPEN_TASK_MODAL', payload: {} })}
+        onAddSection={() => setSectionModalOpen(true)}
+        onClearFilters={() => dispatch({ type: 'CLEAR_FILTERS' })}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
+        sortBy={state.filters.sortBy}
+        sortDirection={state.filters.sortDirection}
+      />
 
       {/* Active Filters */}
       {activeFilters.length > 0 && (
@@ -352,39 +231,32 @@ export default function TaskList({ title, tasks, showAddButton = true }: TaskLis
         </div>
       )}
 
-      {/* Task List */}
-      <div className="flex-1 overflow-auto">
-        {filteredTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Plus className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No tasks found</h3>
-            <p className="text-muted-foreground mb-4 max-w-sm">
-              {activeFilters.length > 0 
-                ? "No tasks match your current filters. Try adjusting your search criteria."
-                : "Get started by creating your first task."
-              }
-            </p>
-            {showAddButton && activeFilters.length === 0 && (
-              <Button onClick={() => dispatch({ type: 'OPEN_TASK_MODAL' })}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Task
-              </Button>
-            )}
+      {/* Task List - Content area with proper scrolling */}
+      <div className="flex-1 overflow-hidden min-w-0">
+        {state.ui.viewMode === 'list' ? (
+          <div className="h-full overflow-auto">
+            <ListView
+              tasks={filteredTasks}
+              onEdit={handleEdit}
+              onAddSection={() => setSectionModalOpen(true)}
+            />
           </div>
         ) : (
-          <div className="p-6 space-y-3">
-            {filteredTasks.map((task) => (
-              <div key={task.id} className="fade-in">
-                <TaskCard task={task} onEdit={handleEdit} />
-              </div>
-            ))}
+          <div className="h-full w-full">
+            <BoardView
+              tasks={filteredTasks}
+              onEdit={handleEdit}
+              onAddSection={() => setSectionModalOpen(true)}
+            />
           </div>
         )}
       </div>
 
-
+      {/* Section Modal */}
+      <SectionModal
+        isOpen={sectionModalOpen}
+        onClose={() => setSectionModalOpen(false)}
+      />
     </div>
   );
 }

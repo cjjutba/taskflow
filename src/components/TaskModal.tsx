@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 import {
   Select,
@@ -36,6 +37,7 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
     priority: 'medium' as 'low' | 'medium' | 'high',
     dueDate: '',
     projectId: '',
+    sectionId: '',
   });
   const [errors, setErrors] = useState<{
     title?: string;
@@ -48,27 +50,55 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
   useEffect(() => {
     if (isOpen) {
       if (task) {
+        // Safely handle date conversion
+        const formatDate = (date: Date | string | null): string => {
+          if (!date) return '';
+          try {
+            const dateObj = date instanceof Date ? date : new Date(date);
+            return dateObj.toISOString().split('T')[0];
+          } catch (error) {
+            console.warn('Invalid date format:', date);
+            return '';
+          }
+        };
+
         setFormData({
           title: task.title,
           description: task.description,
           priority: task.priority,
-          dueDate: task.dueDate ? task.dueDate.toISOString().split('T')[0] : '',
+          dueDate: formatDate(task.dueDate),
           projectId: task.projectId || '',
+          sectionId: task.sectionId || '',
         });
       } else {
         // Set default values for new task
         const today = new Date().toISOString().split('T')[0];
+
+        // Determine default project ID
+        let defaultProjectId = state.filters.project || '';
+
+        // If activeView is a project ID (not a standard view), use it as default project
+        const standardViews = ['today', 'inbox', 'all', 'completed', 'analytics'];
+        if (!standardViews.includes(state.ui.activeView)) {
+          // Check if activeView matches a project ID
+          const projectExists = state.projects.find(p => p.id === state.ui.activeView);
+          if (projectExists) {
+            defaultProjectId = state.ui.activeView;
+          }
+        }
+
         setFormData({
           title: '',
           description: '',
           priority: 'medium',
           dueDate: today,
-          projectId: state.filters.project || '',
+          projectId: defaultProjectId,
+          sectionId: state.ui.selectedSectionId || '',
         });
       }
       setErrors({});
     }
-  }, [task, isOpen, state.filters.project]);
+  }, [task, isOpen, state.filters.project, state.ui.selectedSectionId, state.ui.activeView, state.projects]);
 
   const validateForm = (): boolean => {
     const newErrors: {title?: string; dueDate?: string} = {};
@@ -106,7 +136,9 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
         priority: formData.priority,
         dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
         projectId: formData.projectId || null,
+        sectionId: formData.sectionId || null,
         completed: task?.completed || false,
+        order: task?.order || 0,
       };
 
       if (isEditing && task) {
@@ -163,17 +195,20 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] max-h-[75vh] overflow-y-auto">
-        <DialogHeader className="pb-3">
-          <DialogTitle className="text-lg font-semibold">
+      <DialogContent className="sm:max-w-md max-h-[85vh]">
+        <DialogHeader className="pb-2 border-b border-border">
+          <DialogTitle className="text-base font-semibold text-foreground">
             {isEditing ? 'Edit Task' : 'Create New Task'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing ? 'Edit task details and save changes' : 'Create a new task with title, description, priority and due date'}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2.5 overflow-y-auto max-h-[calc(85vh-100px)] py-1 px-4">
           {/* Title */}
-          <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-sm font-medium text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="title" className="text-xs font-medium text-foreground">
               Task Title *
             </Label>
             <Input
@@ -181,7 +216,7 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter task title..."
-              className={`text-sm ${errors.title ? 'border-destructive focus:border-destructive' : ''}`}
+              className={`text-sm h-8 ${errors.title ? 'border-destructive focus:border-destructive' : ''}`}
               required
               autoFocus={!isEditing}
             />
@@ -194,8 +229,8 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           </div>
 
           {/* Description */}
-          <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-sm font-medium text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="description" className="text-xs font-medium text-foreground">
               Description
             </Label>
             <Textarea
@@ -204,7 +239,7 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Add a description..."
               rows={2}
-              className="resize-none text-sm min-h-[60px]"
+              className="resize-none text-sm h-14"
               maxLength={500}
             />
             <div className="text-xs text-muted-foreground text-right">
@@ -213,23 +248,23 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           </div>
 
           {/* Priority */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-foreground">
+          <div className="space-y-1">
+            <Label className="text-xs font-medium text-foreground">
               Priority
             </Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               {(['low', 'medium', 'high'] as const).map((priority) => (
                 <button
                   key={priority}
                   type="button"
                   onClick={() => handleChange('priority', priority)}
-                  className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-md border text-xs font-medium transition-colors ${
+                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-xs font-medium transition-colors ${
                     formData.priority === priority
                       ? getPriorityColor(priority)
                       : 'bg-background text-muted-foreground border-border hover:bg-muted'
                   }`}
                 >
-                  <Flag className="w-3.5 h-3.5" />
+                  <Flag className="w-3 h-3" />
                   <span className="capitalize">{priority}</span>
                 </button>
               ))}
@@ -237,18 +272,18 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           </div>
 
           {/* Due Date */}
-          <div className="space-y-1.5">
-            <Label htmlFor="dueDate" className="text-sm font-medium text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="dueDate" className="text-xs font-medium text-foreground">
               Due Date
             </Label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
               <Input
                 id="dueDate"
                 type="date"
                 value={formData.dueDate}
                 onChange={(e) => handleChange('dueDate', e.target.value)}
-                className={`pl-10 text-sm ${errors.dueDate ? 'border-destructive focus:border-destructive' : ''}`}
+                className={`pl-8 text-sm h-8 ${errors.dueDate ? 'border-destructive focus:border-destructive' : ''}`}
                 min={new Date().toISOString().split('T')[0]}
               />
             </div>
@@ -261,21 +296,21 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
           </div>
 
           {/* Project */}
-          <div className="space-y-1.5">
-            <Label htmlFor="project" className="text-sm font-medium text-foreground">
+          <div className="space-y-1">
+            <Label htmlFor="project" className="text-xs font-medium text-foreground">
               Project
             </Label>
             <Select
               value={formData.projectId || "none"}
               onValueChange={(value) => handleChange('projectId', value === "none" ? "" : value)}
             >
-              <SelectTrigger id="project" className="w-full text-sm">
+              <SelectTrigger id="project" className="w-full text-sm h-8">
                 <SelectValue placeholder="Select a project..." />
               </SelectTrigger>
               <SelectContent className="bg-white border border-border shadow-lg">
                 <SelectItem value="none">
                   <div className="flex items-center gap-2">
-                    <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                    <FolderOpen className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>No Project</span>
                   </div>
                 </SelectItem>
@@ -294,25 +329,62 @@ export default function TaskModal({ isOpen, onClose, task }: TaskModalProps) {
             </Select>
           </div>
 
+          {/* Section */}
+          <div className="space-y-1">
+            <Label htmlFor="section" className="text-xs font-medium text-foreground">
+              Section
+            </Label>
+            <Select
+              value={formData.sectionId || "none"}
+              onValueChange={(value) => handleChange('sectionId', value === "none" ? "" : value)}
+            >
+              <SelectTrigger id="section" className="w-full text-sm h-8">
+                <SelectValue placeholder="Select a section..." />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-border shadow-lg">
+                <SelectItem value="none">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>No Section</span>
+                  </div>
+                </SelectItem>
+                {state.sections
+                  .filter(section => section.viewId === state.ui.activeView)
+                  .sort((a, b) => a.order - b.order)
+                  .map((section) => (
+                  <SelectItem key={section.id} value={section.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: section.color || '#3b82f6' }}
+                      />
+                      <span className="truncate">{section.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-border mt-2">
+          <div className="flex gap-2 pt-3 border-t border-border mt-1">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 text-sm"
+              className="flex-1 text-sm h-8"
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 text-sm"
+              className="flex-1 text-sm h-8"
               disabled={isSubmitting || !formData.title.trim()}
             >
               {isSubmitting ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   <span>{isEditing ? 'Updating...' : 'Creating...'}</span>
                 </div>
               ) : (
