@@ -1,10 +1,11 @@
 import React from 'react';
 import { useTask } from '../contexts/TaskContext';
-import NotificationDropdown from './NotificationDropdown';
+import { NotificationDropdown } from './NotificationDropdown';
 import { BreadcrumbNavigation, CompactBreadcrumb } from './Header/BreadcrumbNavigation';
 import { HeaderSearchBar } from './Header/HeaderSearchBar';
 import { PomodoroTimer } from './Header/PomodoroTimer';
 import { ThemeToggle } from './Header/ThemeToggle';
+
 
 export default function Header() {
   const { state } = useTask();

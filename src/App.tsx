@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TaskProvider } from "./contexts/TaskContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ConfirmationProvider } from "./contexts/ConfirmationContext";
 
 import Layout from "./components/Layout";
 import { PageTransition } from "./components/ui/page-transition";
@@ -28,9 +29,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ThemeProvider>
-          <TaskProvider>
-            <NotificationProvider>
-              <Layout>
+          <NotificationProvider>
+            <TaskProvider>
+              <ConfirmationProvider>
+                <Layout>
                 <PageTransition>
                   <Routes>
                     <Route path="/" element={<TodayPage />} />
@@ -43,9 +45,10 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </PageTransition>
-              </Layout>
-            </NotificationProvider>
-          </TaskProvider>
+                </Layout>
+              </ConfirmationProvider>
+            </TaskProvider>
+          </NotificationProvider>
         </ThemeProvider>
       </BrowserRouter>
     </TooltipProvider>

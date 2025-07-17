@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import TaskListItem from './TaskListItem';
+import { useConfirmation } from '../../contexts/ConfirmationContext';
+import { sectionConfirmations } from '../../utils/confirmation-configs';
 
 interface ListSectionProps {
   section: Section;
@@ -31,6 +33,7 @@ export default function ListSection({
   isUnsorted = false,
 }: ListSectionProps) {
   const { dispatch } = useTask();
+  const { showConfirmation } = useConfirmation();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(section.name);
 
@@ -55,8 +58,15 @@ export default function ListSection({
   };
 
   const handleDeleteSection = () => {
-    if (!isUnsorted && window.confirm(`Are you sure you want to delete the "${section.name}" section? Tasks will be moved to Unsorted.`)) {
-      dispatch({ type: 'DELETE_SECTION', payload: section.id });
+    if (!isUnsorted) {
+      const confirmationConfig = sectionConfirmations.deleteSection(section.name, tasks.length);
+
+      showConfirmation({
+        ...confirmationConfig,
+        onConfirm: () => {
+          dispatch({ type: 'DELETE_SECTION', payload: section.id });
+        }
+      });
     }
   };
 

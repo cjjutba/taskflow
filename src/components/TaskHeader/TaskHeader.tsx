@@ -43,49 +43,49 @@ export default function TaskHeader({
   sortDirection = 'asc'
 }: TaskHeaderProps) {
   return (
-    <div className="flex items-center justify-between p-6 border-b border-border bg-background flex-shrink-0 min-w-0 w-full">
+    <div className="flex items-center justify-between p-4 lg:p-6 border-b border-border bg-background flex-shrink-0 min-w-0 w-full">
       {/* Left Section - Title and Stats */}
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <h1 className="text-2xl font-semibold text-foreground truncate">{title}</h1>
-        <Badge variant="secondary" className="text-xs flex-shrink-0">
+      <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1 mr-4">
+        <h1 className="text-xl lg:text-2xl font-semibold text-foreground truncate">{title}</h1>
+        <Badge variant="secondary" className="text-xs flex-shrink-0 hidden sm:inline-flex">
           {taskCount} tasks
         </Badge>
         {completedCount > 0 && (
-          <Badge variant="outline" className="text-xs flex-shrink-0 border-muted-foreground/20 text-muted-foreground bg-muted/30">
+          <Badge variant="outline" className="text-xs flex-shrink-0 border-muted-foreground/20 text-muted-foreground bg-muted/30 hidden md:inline-flex">
             {completedCount}/{totalCount} completed
           </Badge>
         )}
       </div>
 
       {/* Right Section - Controls */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
         {/* View Toggle */}
         <ViewToggle />
 
         {/* Divider */}
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-6 bg-border hidden sm:block" />
 
         {/* Filter Button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                "gap-2 h-9 px-3 rounded-lg transition-all duration-200",
+                "gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 rounded-lg transition-all duration-200",
                 "hover:bg-muted hover:text-foreground",
                 "border border-transparent hover:border-border",
                 activeFilters.length > 0 && "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               )}
             >
               <Filter className="w-4 h-4" />
-              <span className="font-medium">Filter</span>
+              <span className="font-medium hidden sm:inline">Filter</span>
               {activeFilters.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs hidden sm:inline-flex">
                   {activeFilters.length}
                 </Badge>
               )}
-              <ChevronDown className="w-3 h-3 opacity-50" />
+              <ChevronDown className="w-3 h-3 opacity-50 hidden sm:inline" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -120,11 +120,11 @@ export default function TaskHeader({
         {/* Sort Button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                "gap-2 h-9 px-3 rounded-lg transition-all duration-200",
+                "gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 rounded-lg transition-all duration-200",
                 "hover:bg-muted hover:text-foreground",
                 "border border-transparent hover:border-border",
                 sortBy && sortBy !== 'dueDate' && "bg-secondary/50 text-secondary-foreground border-secondary hover:bg-secondary/70"
@@ -135,13 +135,13 @@ export default function TaskHeader({
               ) : (
                 <SortAsc className="w-4 h-4" />
               )}
-              <span className="font-medium">Sort</span>
+              <span className="font-medium hidden sm:inline">Sort</span>
               {sortBy && sortBy !== 'dueDate' && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs hidden md:inline-flex">
                   {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
                 </Badge>
               )}
-              <ChevronDown className="w-3 h-3 opacity-50" />
+              <ChevronDown className="w-3 h-3 opacity-50 hidden sm:inline" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-background border-border shadow-lg">
@@ -164,7 +164,7 @@ export default function TaskHeader({
         </DropdownMenu>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-6 bg-border hidden lg:block" />
 
         {/* Add Section Button */}
         <Button
@@ -172,13 +172,13 @@ export default function TaskHeader({
           size="sm"
           onClick={onAddSection}
           className={cn(
-            "gap-2 h-9 px-3 rounded-lg transition-all duration-200",
+            "gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 rounded-lg transition-all duration-200",
             "hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200",
             "border border-transparent"
           )}
         >
           <Layers className="w-4 h-4" />
-          <span className="font-medium">Add Section</span>
+          <span className="font-medium hidden lg:inline">Add Section</span>
         </Button>
 
         {/* Add Task Button */}
@@ -187,14 +187,14 @@ export default function TaskHeader({
             onClick={onAddTask}
             size="sm"
             className={cn(
-              "gap-2 h-9 px-4 rounded-lg transition-all duration-200",
+              "gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-4 rounded-lg transition-all duration-200",
               "bg-blue-600 hover:bg-blue-700 text-white",
               "shadow-sm hover:shadow-md",
               "font-medium"
             )}
           >
             <Plus className="w-4 h-4" />
-            Add Task
+            <span className="hidden sm:inline">Add Task</span>
           </Button>
         )}
       </div>

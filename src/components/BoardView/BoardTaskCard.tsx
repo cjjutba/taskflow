@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { cn } from '../../lib/utils';
+import { useConfirmation } from '../../contexts/ConfirmationContext';
+import { taskConfirmations } from '../../utils/confirmation-configs';
 
 interface BoardTaskCardProps {
   task: Task;
@@ -21,6 +23,7 @@ interface BoardTaskCardProps {
 
 export default function BoardTaskCard({ task, onEdit, isDragging = false }: BoardTaskCardProps) {
   const { state, dispatch } = useTask();
+  const { showConfirmation } = useConfirmation();
   const [isHovered, setIsHovered] = useState(false);
 
   const handleToggleComplete = () => {
@@ -28,9 +31,14 @@ export default function BoardTaskCard({ task, onEdit, isDragging = false }: Boar
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      dispatch({ type: 'DELETE_TASK', payload: task.id });
-    }
+    const confirmationConfig = taskConfirmations.deleteTask(task.title);
+
+    showConfirmation({
+      ...confirmationConfig,
+      onConfirm: () => {
+        dispatch({ type: 'DELETE_TASK', payload: task.id });
+      }
+    });
   };
 
   const getPriorityColor = (priority: string) => {

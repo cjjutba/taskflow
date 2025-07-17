@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { useToast } from '../../hooks/use-toast';
+import { useConfirmation } from '../../contexts/ConfirmationContext';
+import { taskConfirmations } from '../../utils/confirmation-configs';
 
 interface TaskActionsProps {
   task: Task;
@@ -20,6 +22,7 @@ interface TaskActionsProps {
 export function TaskActions({ task, onEdit, className }: TaskActionsProps) {
   const { dispatch } = useTask();
   const { toast } = useToast();
+  const { showConfirmation } = useConfirmation();
   const [isOpen, setIsOpen] = useState(false);
 
   const duplicateTask = () => {
@@ -38,12 +41,19 @@ export function TaskActions({ task, onEdit, className }: TaskActionsProps) {
     });
   };
 
-  const deleteTask = () => {
-    dispatch({ type: 'DELETE_TASK', payload: task.id });
-    toast({
-      title: 'Task deleted',
-      description: 'The task has been removed.',
-      variant: 'destructive',
+  const handleDeleteTask = () => {
+    const confirmationConfig = taskConfirmations.deleteTask(task.title);
+
+    showConfirmation({
+      ...confirmationConfig,
+      onConfirm: () => {
+        dispatch({ type: 'DELETE_TASK', payload: task.id });
+        toast({
+          title: 'Task deleted',
+          description: 'The task has been removed.',
+          variant: 'destructive',
+        });
+      }
     });
   };
 
@@ -95,8 +105,8 @@ export function TaskActions({ task, onEdit, className }: TaskActionsProps) {
 
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem 
-          onClick={deleteTask}
+        <DropdownMenuItem
+          onClick={handleDeleteTask}
           className="text-destructive focus:text-destructive"
         >
           <Trash2 className="w-4 h-4 mr-2" />

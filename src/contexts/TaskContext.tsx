@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useTaskNotifications } from '../hooks/useTaskNotifications';
 
 export interface Task {
   id: string;
@@ -109,80 +110,7 @@ const initialState: TaskState = {
   },
 };
 
-// Sample data
-const sampleProjects: Project[] = [
-  { id: '1', name: 'Personal', color: '#10b981', taskCount: 5 },
-  { id: '2', name: 'Work', color: '#2563eb', taskCount: 8 },
-  { id: '3', name: 'Learning', color: '#f59e0b', taskCount: 3 },
-];
 
-const sampleTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Finish project proposal',
-    description: 'Complete the Q4 project proposal with timeline and budget',
-    completed: false,
-    priority: 'high',
-    dueDate: new Date(Date.now() + 86400000), // Tomorrow
-    projectId: '2',
-    sectionId: null,
-    order: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    title: 'Review code changes',
-    description: 'Review the pull requests for the new feature implementation',
-    completed: false,
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 259200000), // 3 days
-    projectId: '2',
-    sectionId: null,
-    order: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    title: 'Update portfolio website',
-    description: 'Add recent projects and update the about section',
-    completed: false,
-    priority: 'low',
-    dueDate: null,
-    projectId: '1',
-    sectionId: null,
-    order: 2,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    title: 'Morning workout',
-    description: '30 minutes cardio and strength training',
-    completed: true,
-    priority: 'medium',
-    dueDate: new Date(),
-    projectId: '1',
-    sectionId: null,
-    order: 3,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    title: 'Learn React Query',
-    description: 'Complete the React Query documentation and build a sample project',
-    completed: false,
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 604800000), // 1 week
-    projectId: '3',
-    sectionId: null,
-    order: 4,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 function taskReducer(state: TaskState, action: TaskAction): TaskState {
   switch (action.type) {
@@ -376,8 +304,24 @@ const TaskContext = createContext<{
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(taskReducer, initialState);
 
+  // Integrate notification system
+  useTaskNotifications({
+    tasks: state.tasks,
+    projects: state.projects,
+    sections: state.sections
+  });
+
   // Load data from localStorage on mount
   useEffect(() => {
+    // One-time cleanup of sample data - only run if not already cleaned
+    const hasBeenCleaned = localStorage.getItem('taskManager.cleaned');
+    if (!hasBeenCleaned) {
+      localStorage.removeItem('taskManager.tasks');
+      localStorage.removeItem('taskManager.projects');
+      localStorage.removeItem('taskManager.sections');
+      localStorage.setItem('taskManager.cleaned', 'true');
+    }
+
     const savedTasks = localStorage.getItem('taskManager.tasks');
     const savedProjects = localStorage.getItem('taskManager.projects');
     const savedSections = localStorage.getItem('taskManager.sections');
@@ -393,17 +337,13 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         order: task.order || 0,
       }));
       dispatch({ type: 'SET_TASKS', payload: tasks });
-    } else {
-      // Load sample data if no saved data
-      dispatch({ type: 'SET_TASKS', payload: sampleTasks });
     }
+    // Start with empty tasks if no saved data
 
     if (savedProjects) {
       dispatch({ type: 'SET_PROJECTS', payload: JSON.parse(savedProjects) });
-    } else {
-      // Load sample projects if no saved data
-      dispatch({ type: 'SET_PROJECTS', payload: sampleProjects });
     }
+    // Start with empty projects if no saved data
 
     if (savedSections) {
       const sections = JSON.parse(savedSections).map((section: any) => ({

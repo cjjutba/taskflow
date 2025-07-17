@@ -137,15 +137,12 @@ export default function Sidebar() {
           <div className="flex items-center">
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center relative">
-                {/* Task Flow Icon - Three connected dots representing workflow */}
-                <div className="flex items-center gap-0.5">
-                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
-                  <div className="w-2 h-0.5 bg-primary-foreground/60"></div>
-                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
-                  <div className="w-2 h-0.5 bg-primary-foreground/60"></div>
-                  <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></div>
-                </div>
+              <div className="w-7 h-7 flex items-center justify-center">
+                <img
+                  src="/logo/checklist.png"
+                  alt="TaskFlow Logo"
+                  className="w-7 h-7 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-base font-semibold text-foreground">TaskFlow</h1>

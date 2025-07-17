@@ -16,6 +16,8 @@ import DraggableTask from '../DragDrop/DraggableTask';
 import DroppableSection from '../DragDrop/DroppableSection';
 import DropIndicator from '../DragDrop/DropIndicator';
 import { cn } from '../../lib/utils';
+import { useConfirmation } from '../../contexts/ConfirmationContext';
+import { sectionConfirmations } from '../../utils/confirmation-configs';
 
 interface BoardSectionProps {
   section: Section;
@@ -33,6 +35,7 @@ export default function BoardSection({
   isUnsorted = false,
 }: BoardSectionProps) {
   const { dispatch } = useTask();
+  const { showConfirmation } = useConfirmation();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(section.name);
 
@@ -57,8 +60,15 @@ export default function BoardSection({
   };
 
   const handleDeleteSection = () => {
-    if (!isUnsorted && window.confirm(`Are you sure you want to delete the "${section.name}" section? Tasks will be moved to Unsorted.`)) {
-      dispatch({ type: 'DELETE_SECTION', payload: section.id });
+    if (!isUnsorted) {
+      const confirmationConfig = sectionConfirmations.deleteSection(section.name, tasks.length);
+
+      showConfirmation({
+        ...confirmationConfig,
+        onConfirm: () => {
+          dispatch({ type: 'DELETE_SECTION', payload: section.id });
+        }
+      });
     }
   };
 
