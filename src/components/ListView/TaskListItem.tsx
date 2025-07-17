@@ -93,7 +93,7 @@ export default function TaskListItem({ task, onEdit }: TaskListItemProps) {
       <Checkbox
         checked={task.completed}
         onCheckedChange={handleToggleComplete}
-        className="flex-shrink-0 h-4 w-4"
+        className="flex-shrink-0 h-4 w-4 sm:h-4 sm:w-4 h-5 w-5"
       />
 
       {/* Content */}

@@ -207,12 +207,14 @@ export function PomodoroTimer() {
           variant="ghost"
           size="sm"
           className={cn(
-            "h-9 px-3 gap-2 relative",
+            "h-9 px-3 gap-2 relative pomodoro-timer-button",
+            "sm:h-8 sm:px-2 sm:gap-1.5", // 640px-768px optimizations
+            "md:h-9 md:px-3 md:gap-2", // 768px+ back to normal
             status === 'running' && "bg-primary/10 text-primary"
           )}
         >
-          <Timer className="w-4 h-4" />
-          <span className="font-mono text-sm">{formatTime(timeLeft)}</span>
+          <Timer className="w-4 h-4 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+          <span className="font-mono text-sm sm:text-xs md:text-sm pomodoro-timer-text">{formatTime(timeLeft)}</span>
           
           {/* Progress indicator */}
           {status === 'running' && (

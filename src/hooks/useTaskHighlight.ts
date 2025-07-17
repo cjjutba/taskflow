@@ -50,6 +50,13 @@ export function useTaskHighlight(): TaskHighlightResult {
 
   // Scroll to highlighted task with enhanced functionality
   const scrollToTask = useCallback((taskId: string, retries = 3) => {
+    // First validate that the task exists in our data
+    const taskExists = state.tasks.find(t => t.id === taskId);
+    if (!taskExists) {
+      // Task doesn't exist in our data, don't attempt to scroll
+      return;
+    }
+
     const attemptScroll = (attempt: number) => {
       const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
 
@@ -75,13 +82,15 @@ export function useTaskHighlight(): TaskHighlightResult {
         // Retry if element not found (might still be rendering)
         setTimeout(() => attemptScroll(attempt + 1), 200 * attempt);
       } else {
-        console.warn(`Task element with ID ${taskId} not found after ${retries} attempts`);
+        // Silently fail if task element is not found - this can happen during navigation
+        // or when the task is not currently visible on the page
+        return;
       }
     };
 
     // Initial delay to ensure DOM is updated
     setTimeout(() => attemptScroll(1), 100);
-  }, []);
+  }, [state.tasks]);
 
   // Show task not found notification
   const showTaskNotFound = useCallback((taskId: string, currentPage: string) => {
@@ -130,23 +139,31 @@ export function useTaskHighlight(): TaskHighlightResult {
   // Sync URL parameter with context state on mount/change
   useEffect(() => {
     if (filters.task && filters.task !== state.ui.highlightedTaskId) {
-      // URL has task parameter, update context
-      dispatch({
-        type: 'HIGHLIGHT_TASK',
-        payload: { taskId: filters.task }
-      });
-      
-      // Auto-scroll to the task
-      scrollToTask(filters.task);
-      
-      // Auto-clear highlight after 3 seconds
-      const timer = setTimeout(() => {
+      // Validate that the task exists before processing
+      const taskExists = state.tasks.find(t => t.id === filters.task);
+
+      if (taskExists) {
+        // URL has valid task parameter, update context
+        dispatch({
+          type: 'HIGHLIGHT_TASK',
+          payload: { taskId: filters.task }
+        });
+
+        // Auto-scroll to the task
+        scrollToTask(filters.task);
+
+        // Auto-clear highlight after 3 seconds
+        const timer = setTimeout(() => {
+          clearHighlight();
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      } else {
+        // Invalid task ID in URL, clear it
         clearHighlight();
-      }, 3000);
-      
-      return () => clearTimeout(timer);
+      }
     }
-  }, [filters.task, state.ui.highlightedTaskId, dispatch, scrollToTask, clearHighlight]);
+  }, [filters.task, state.ui.highlightedTaskId, state.tasks, dispatch, scrollToTask, clearHighlight]);
 
   return {
     highlightedTaskId,

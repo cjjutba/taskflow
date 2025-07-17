@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, ArrowLeft, Hash, Clock, Lightbulb } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -178,6 +178,12 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-0 max-w-full h-full max-h-full rounded-none border-0 bg-background">
+        {/* Hidden accessibility components */}
+        <DialogTitle className="sr-only">Search Tasks and Projects</DialogTitle>
+        <DialogDescription className="sr-only">
+          Search through your tasks, projects, and sections. Use keywords like priority:high or due:today for advanced filtering.
+        </DialogDescription>
+
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center gap-3 p-4 border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-10">

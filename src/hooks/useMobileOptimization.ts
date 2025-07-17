@@ -52,8 +52,8 @@ export const useMobileOptimization = (options: Partial<MobileOptimizationOptions
     const checkDevice = () => {
       const userAgent = navigator.userAgent;
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-      const isTabletDevice = /iPad|Android(?=.*\bMobile\b)/i.test(userAgent) || 
-        (window.innerWidth >= 768 && window.innerWidth <= 1024);
+      const isTabletDevice = /iPad|Android(?=.*\bMobile\b)/i.test(userAgent) ||
+        (window.innerWidth >= 768 && window.innerWidth < 1024); // md to lg breakpoint
       
       setIsMobile(isMobileDevice && !isTabletDevice);
       setIsTablet(isTabletDevice);

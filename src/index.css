@@ -4,6 +4,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+/*
+  TaskFlow uses standard Tailwind CSS breakpoints:
+
+  Base:    <640px  - Mobile devices (portrait phones)
+  sm:  ≥640px     - Small devices (landscape phones)
+  md:  ≥768px     - Medium devices (tablets)
+  lg:  ≥1024px    - Large devices (laptops)
+  xl:  ≥1280px    - Extra large devices (desktops)
+  2xl: ≥1536px    - 2X large devices (large desktops)
+
+  Mobile-first approach: Base styles apply to all sizes,
+  then use breakpoint prefixes for larger screens.
+
+  CSS Media Query Equivalents:
+  - Mobile:  @media (max-width: 639px)
+  - Tablet:  @media (min-width: 640px) and (max-width: 1023px)
+  - Desktop: @media (min-width: 1024px)
+*/
+
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;
@@ -77,6 +97,13 @@
     --radius: 0.5rem;
     --sidebar-width: 240px;
     --header-height: 64.5px;
+
+    /* Responsive Breakpoints */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
 
     --sidebar-background: 0 0% 98%;
 
@@ -184,6 +211,97 @@
   .gap-md { @apply gap-4; }
   .gap-lg { @apply gap-6; }
   .gap-xl { @apply gap-8; }
+
+  /* Responsive Header Utilities */
+  .header-button-base {
+    @apply h-8 sm:h-9 transition-all duration-200 border border-transparent;
+    @apply hover:bg-muted hover:text-foreground hover:border-border;
+  }
+
+  .header-button-compact {
+    @apply px-2 gap-0 sm:px-3 sm:gap-1.5 lg:px-4 lg:gap-2;
+  }
+
+  .header-button-responsive {
+    @apply header-button-base header-button-compact;
+  }
+
+  /* Accessible Icon-Only Buttons for 1024px and Above */
+  @media (min-width: 1024px) {
+    .task-header-button {
+      height: 32px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+      gap: 4px !important;
+      font-size: 12px !important;
+    }
+
+    .task-header-icon {
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    .task-header-badge {
+      height: 16px !important;
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+      font-size: 10px !important;
+    }
+
+    .view-toggle-container {
+      padding: 2px !important;
+    }
+
+    .view-toggle-button {
+      height: 28px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+      gap: 4px !important;
+      font-size: 11px !important;
+    }
+
+    /* Hide text labels for icon-only buttons at 1024px+ */
+    .task-header-button span:not(.task-header-badge) {
+      display: none !important;
+    }
+
+    /* Keep Add Task text visible */
+    .task-header-button.keep-text span {
+      display: inline !important;
+      font-size: 12px !important;
+    }
+
+    /* Adjust spacing for icon-only buttons */
+    .task-header-button:not(.keep-text) {
+      padding-left: 6px !important;
+      padding-right: 6px !important;
+      gap: 0px !important;
+    }
+  }
+
+  /* Container adjustments for 1024px and above */
+  @media (min-width: 1024px) {
+    .task-header-container {
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+
+    .task-header-title {
+      font-size: 20px !important;
+    }
+
+    .task-header-controls {
+      gap: 4px !important;
+    }
+
+    .task-header-divider {
+      height: 20px !important;
+      margin-left: 4px !important;
+      margin-right: 4px !important;
+    }
+  }
   
   /* Animations */
   .slide-in {
@@ -566,8 +684,8 @@
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 }
 
-/* Mobile-first responsive design */
-@media (max-width: 768px) {
+/* Mobile-first responsive design - Below md breakpoint */
+@media (max-width: 767px) {
   /* Touch-friendly sizing */
   .notification-item {
     min-height: 44px;
@@ -664,8 +782,64 @@
   }
 }
 
-/* Tablet optimizations */
-@media (min-width: 768px) and (max-width: 1024px) {
+/* Small tablet/large mobile optimizations - sm to md breakpoint (640px-768px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  /* TaskHeader optimizations for small tablets */
+  .task-header-container {
+    padding: 10px 12px !important;
+  }
+
+  .task-header-title {
+    font-size: 16px !important;
+  }
+
+  .task-header-button {
+    height: 32px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+  }
+
+  .task-header-icon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .view-toggle-button {
+    height: 30px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+  }
+
+  .task-header-controls {
+    gap: 4px !important;
+  }
+
+  .task-header-divider {
+    height: 20px !important;
+    margin: 0 4px !important;
+  }
+
+  /* Compact button text for better fit */
+  .task-header-button span {
+    font-size: 11px !important;
+  }
+
+  /* PomodoroTimer optimizations */
+  .pomodoro-timer-button {
+    height: 32px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
+  }
+
+  .pomodoro-timer-text {
+    font-size: 11px !important;
+  }
+}
+
+/* Tablet optimizations - md to lg breakpoint */
+@media (min-width: 768px) and (max-width: 1023px) {
   .notification-dropdown-tablet {
     width: 400px;
     max-height: 500px;
@@ -678,6 +852,43 @@
   .notification-action {
     min-height: 40px;
     padding: 10px 14px;
+  }
+
+  /* TaskHeader optimizations for tablet */
+  .task-header-container {
+    padding: 12px 16px !important;
+  }
+
+  .task-header-title {
+    font-size: 18px !important;
+  }
+
+  .task-header-button {
+    height: 36px !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+  }
+
+  .task-header-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .view-toggle-button {
+    height: 34px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+  }
+
+  .task-header-controls {
+    gap: 6px !important;
+  }
+
+  .task-header-divider {
+    height: 24px !important;
+    margin: 0 6px !important;
   }
 }
 

@@ -23,26 +23,31 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Load notifications from storage on mount
   useEffect(() => {
-    // Clear any existing notifications and related data to start fresh with simplified system
-    notificationStorage.clearAllNotifications();
-    localStorage.removeItem('taskflow_achievements');
-    localStorage.removeItem('taskflow_notifications');
-    // Reset settings to enable all CRUD notifications
-    notificationStorage.updateSettings({
-      taskCreated: true,
-      taskUpdated: true,
-      taskCompleted: true,
-      taskDeleted: true,
-      sectionCreated: true,
-      sectionUpdated: true,
-      sectionDeleted: true,
-      projectCreated: true,
-      projectUpdated: true,
-      projectDeleted: true,
-    });
+    // Load existing notifications from localStorage
     const storedNotifications = notificationStorage.getNotifications();
     setNotifications(storedNotifications);
-    setSettings(notificationStorage.getSettings());
+
+    // Initialize settings if they don't exist
+    const storedSettings = notificationStorage.getSettings();
+    if (Object.keys(storedSettings).length === 0) {
+      // First time setup - enable all CRUD notifications
+      const defaultSettings = {
+        taskCreated: true,
+        taskUpdated: true,
+        taskCompleted: true,
+        taskDeleted: true,
+        sectionCreated: true,
+        sectionUpdated: true,
+        sectionDeleted: true,
+        projectCreated: true,
+        projectUpdated: true,
+        projectDeleted: true,
+      };
+      notificationStorage.updateSettings(defaultSettings);
+      setSettings(defaultSettings);
+    } else {
+      setSettings(storedSettings);
+    }
   }, []);
 
   // Computed values

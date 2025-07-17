@@ -63,8 +63,8 @@ export default function NotificationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-blue-600" />
             All Notifications
@@ -74,7 +74,7 @@ export default function NotificationModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {/* Header Actions */}
           <div className="flex items-center justify-between px-6 pb-4">
             <div className="flex items-center gap-2">
@@ -119,38 +119,38 @@ export default function NotificationModal({
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as any)}
-            className="w-full"
+            className="w-full flex-1 flex flex-col min-h-0"
           >
-            <div className="px-6 pb-4">
+            <div className="px-6 pb-4 flex-shrink-0">
               <TabsList className="grid w-full grid-cols-4 h-10">
-                <TabsTrigger value="all" className="text-sm">
-                  All
+                <TabsTrigger value="all" className="text-sm h-8 min-w-0">
+                  <span className="truncate">All</span>
                   {notifications.length > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs">
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs flex-shrink-0">
                       {notifications.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="task" className="text-sm">
-                  Tasks
+                <TabsTrigger value="task" className="text-sm h-8 min-w-0">
+                  <span className="truncate">Tasks</span>
                   {taskCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs">
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs flex-shrink-0">
                       {taskCount}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="section" className="text-sm">
-                  Sections
+                <TabsTrigger value="section" className="text-sm h-8 min-w-0">
+                  <span className="truncate">Sections</span>
                   {sectionCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs">
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs flex-shrink-0">
                       {sectionCount}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="project" className="text-sm">
-                  Projects
+                <TabsTrigger value="project" className="text-sm h-8 min-w-0">
+                  <span className="truncate">Projects</span>
                   {projectCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs">
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs flex-shrink-0">
                       {projectCount}
                     </Badge>
                   )}
@@ -159,10 +159,10 @@ export default function NotificationModal({
             </div>
 
             {/* Content */}
-            <TabsContent value={activeTab} className="mt-0 px-6">
-              <div className="h-96">
+            <TabsContent value={activeTab} className="mt-0 px-6 flex-1 min-h-0 overflow-hidden">
+              <div className="h-full flex flex-col">
                 {filteredNotifications.length === 0 ? (
-                  <div className="h-full flex items-center justify-center">
+                  <div className="flex-1 flex items-center justify-center min-h-[200px]">
                     <motion.div
                       initial="hidden"
                       animate="visible"
@@ -172,13 +172,14 @@ export default function NotificationModal({
                     </motion.div>
                   </div>
                 ) : (
-                  <ScrollArea className="h-full">
-                    <motion.div
-                      className="space-y-2 pr-4"
-                      initial="hidden"
-                      animate="visible"
-                      variants={animationVariants.staggerContainer}
-                    >
+                  <div className="flex-1 min-h-0">
+                    <ScrollArea className="h-full">
+                      <motion.div
+                        className="space-y-2 pr-4 pb-4"
+                        initial="hidden"
+                        animate="visible"
+                        variants={animationVariants.staggerContainer}
+                      >
                       <AnimatePresence mode="popLayout">
                         {filteredNotifications.map((notification, index) => (
                           <motion.div
@@ -208,7 +209,8 @@ export default function NotificationModal({
                         ))}
                       </AnimatePresence>
                     </motion.div>
-                  </ScrollArea>
+                    </ScrollArea>
+                  </div>
                 )}
               </div>
             </TabsContent>
@@ -216,11 +218,11 @@ export default function NotificationModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 pt-4 border-t border-border bg-muted/30">
+        <div className="flex items-center justify-between p-6 pt-4 border-t border-border bg-muted/30 flex-shrink-0">
           <div className="text-sm text-muted-foreground">
             {filteredNotifications.length} {activeTab === 'all' ? '' : activeTab} notification{filteredNotifications.length !== 1 ? 's' : ''}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
