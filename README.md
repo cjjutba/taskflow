@@ -5,13 +5,34 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4.11-blue)](https://tailwindcss.com/)
 
-A clean, minimal, and professional task management application built for modern workflows. TaskFlow combines intuitive design with powerful features to help you organize tasks, manage projects, and boost productivity.
+## 📋 Table of Contents
+- [📝 What is TaskFlow?](#-what-is-taskflow)
+- [🌐 Live Demo](#-live-demo)
+- [✨ Features](#-features)
+- [🛠️ Technology Stack](#️-technology-stack)
+- [🚀 Getting Started](#-getting-started)
+- [📁 Project Structure](#-project-structure)
+- [🎨 Design System](#-design-system)
+- [📱 Responsive Breakpoints](#-responsive-breakpoints)
+- [🔒 Data & Privacy](#-data--privacy)
+- [🚀 Deployment](#-deployment)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [👨‍💻 Author](#-author)
+- [🙏 Acknowledgments](#-acknowledgments)
+
+---
+
+## 📝 What is TaskFlow?
+
+TaskFlow is a clean, minimal, and professional task management application built for modern workflows. It combines intuitive design with powerful features to help you organize tasks, manage projects, and boost productivity. This project demonstrates advanced frontend development skills with React, TypeScript, and modern web technologies.
 
 > **⚠️ Frontend-Only Implementation**: This project is a complete frontend demonstration using local storage for data persistence. It does not include backend services or databases. All data is stored locally in the browser for showcase purposes.
 
 ## 🌐 Live Demo
-
 **Website**: [https://taskflow-web-app.vercel.app/](https://taskflow-web-app.vercel.app/)
+
+---
 
 ## ✨ Features
 
@@ -70,6 +91,8 @@ A clean, minimal, and professional task management application built for modern 
 - **Visual Charts** - Interactive charts and graphs for data visualization
 - **Achievement System** - Gamified productivity tracking with unlockable achievements
 
+---
+
 ## 🛠️ Technology Stack
 
 ### **Frontend**
@@ -101,6 +124,8 @@ A clean, minimal, and professional task management application built for modern 
 - **Recharts** - Interactive charts for analytics
 - **Sonner** - Toast notifications
 
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -108,7 +133,6 @@ A clean, minimal, and professional task management application built for modern 
 - Git
 
 ### Installation
-
 1. **Clone the repository**
 ```bash
 git clone https://github.com/christianjeraldjutba/taskflow.git
@@ -131,7 +155,6 @@ http://localhost:8080
 ```
 
 ### Build for Production
-
 ```bash
 # Build for production
 npm run build
@@ -143,8 +166,9 @@ npm run preview
 npm run lint
 ```
 
-## 📁 Project Structure
+---
 
+## 📁 Project Structure
 ```
 src/
 ├── components/          # React components
@@ -177,6 +201,8 @@ src/
 └── services/           # Service layer for data operations
 ```
 
+---
+
 ## 🎨 Design System
 
 ### **Color Palette**
@@ -196,6 +222,8 @@ src/
 - **Forms**: Accessible inputs with validation states and clear labels
 - **Navigation**: Collapsible sidebar with hover states and active indicators
 
+---
+
 ## 📱 Responsive Breakpoints
 
 ### **Tailwind CSS Breakpoints**
@@ -211,8 +239,9 @@ src/
 - Responsive task cards and forms
 - Optimized navigation patterns
 
-## 🔒 Data & Privacy
+---
 
+## 🔒 Data & Privacy
 > **Note**: All data handling is client-side only for this demonstration project.
 
 ### **Local Storage**
@@ -227,14 +256,14 @@ src/
 - **Offline Capable** - Full functionality without internet connection
 - **No Registration** - Immediate access without account creation
 
-## 🚀 Deployment
+---
 
+## 🚀 Deployment
 The application is deployed on **Vercel** with automatic deployments from the main branch. Since this is a frontend-only application, no backend infrastructure or database setup is required.
 
 **Live URL**: [https://taskflow-web-app.vercel.app/](https://taskflow-web-app.vercel.app/)
 
 ### Deploy Your Own
-
 1. Fork this repository
 2. Connect to Vercel (or your preferred static hosting)
 3. Deploy with default settings (static site)
@@ -242,20 +271,33 @@ The application is deployed on **Vercel** with automatic deployments from the ma
 
 > **Note**: This is a static frontend deployment. For a production task management application, you would typically integrate with backend services and databases.
 
-## 🤝 Contributing
+---
 
+## 🤝 Contributing
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+---
 
+## 📄 License
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🙏 Acknowledgments
+---
 
+## 👨‍💻 Author
+
+**CJ Jutba**
+- 🌐 **Portfolio**: [https://cjjutba.com/](https://cjjutba.com/)
+- 💼 **LinkedIn**: [https://www.linkedin.com/in/cjjutba/](https://www.linkedin.com/in/cjjutba/)
+- 🐙 **GitHub**: [https://github.com/cjjutba](https://github.com/cjjutba)
+- 📧 **Email**: [hello@cjjutba.com](mailto:hello@cjjutba.com)
+
+---
+
+## 🙏 Acknowledgments
 - **shadcn/ui** for the beautiful and accessible component library
 - **Tailwind CSS** for the utility-first CSS framework
 - **Lucide** for the comprehensive icon set
@@ -263,5 +305,4 @@ This project is open source and available under the [MIT License](LICENSE).
 - **Vercel** for seamless deployment and hosting
 
 ---
-
 **Built with ❤️ for modern productivity workflows**
