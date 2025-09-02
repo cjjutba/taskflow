@@ -30,7 +30,7 @@ TaskFlow is a clean, minimal, and professional task management application built
 > **⚠️ Frontend-Only Implementation**: This project is a complete frontend demonstration using local storage for data persistence. It does not include backend services or databases. All data is stored locally in the browser for showcase purposes.
 
 ## 🌐 Live Demo
-**Website**: [https://taskflow-web-app.vercel.app/](https://taskflow-web-app.vercel.app/)
+**Website**: [https://taskflow.cjjutba.com/](https://taskflow.cjjutba.com/)
 
 ---
 
@@ -261,7 +261,7 @@ src/
 ## 🚀 Deployment
 The application is deployed on **Vercel** with automatic deployments from the main branch. Since this is a frontend-only application, no backend infrastructure or database setup is required.
 
-**Live URL**: [https://taskflow-web-app.vercel.app/](https://taskflow-web-app.vercel.app/)
+**Live URL**: [https://taskflow.cjjutba.com/](https://taskflow.cjjutba.com/)
 
 ### Deploy Your Own
 1. Fork this repository
